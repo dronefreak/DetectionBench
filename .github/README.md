@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-Apache--2.0-lightgrey?style=flat-square)
 
 <p align="center">
-  <img src="../banners/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn"/>
+  <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn"/>
 </p>
 
 DetectionBench is a Hydra-driven framework for training, evaluating, and
