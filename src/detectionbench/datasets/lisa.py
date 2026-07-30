@@ -53,7 +53,7 @@ class LISATrafficLightsAdapter(DatasetAdapter):
             "Survey, and Perspectives', IEEE Trans. Intelligent "
             "Transportation Systems, 2016."
         ),
-        license="Research use -- see homepage before redistributing.",
+        license="CC BY-NC-SA 4.0 -- see homepage before redistributing.",
     )
 
     def prepare_coco(self, raw_dir: Path, output_dir: Path) -> None:

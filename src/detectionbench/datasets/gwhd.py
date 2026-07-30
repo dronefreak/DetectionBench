@@ -63,7 +63,7 @@ class GWHDAdapter(DatasetAdapter):
             "Develop and Benchmark Wheat Head Detection Methods', Plant "
             "Phenomics, 2020 (and the 2021 update)."
         ),
-        license="CC BY-SA 4.0 -- see homepage before redistributing.",
+        license="CC BY 4.0 -- see homepage before redistributing.",
     )
 
     def prepare_coco(self, raw_dir: Path, output_dir: Path) -> None:
