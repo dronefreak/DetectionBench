@@ -13,9 +13,9 @@ model:
 
 evaluation:
   dataset_dir: ${dataset.dataset_dir}
-  checkpoint: "experiments/${dataset}/${model.name}/checkpoint_best_total.pth"
+  checkpoint: "experiments/${dataset.name}/${model.name}/checkpoint_best_total.pth"
   split: "test" # train, valid, or test
-  output_dir: "experiments/${dataset}/${model.name}/evaluation"
+  output_dir: "experiments/${dataset.name}/${model.name}/evaluation"
   device: "cuda"
   score_threshold: 0.0
   optimize_for_inference: true

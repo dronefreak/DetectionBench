@@ -24,7 +24,8 @@ training:
   scheduler_step_size: 10 # Step size for step scheduler
   scheduler_gamma: 0.1 # Gamma for step scheduler
   use_amp: true # Use Automatic Mixed Precision (AMP) for faster training and lower memory usage
-  output_dir: "experiments/${dataset}/${model.name}" # Directory to save model checkpoints and logs
+  patience: 100 # Early stopping: epochs with no mAP improvement before stopping (Ultralytics native mechanism)
+  output_dir: "experiments/${dataset.name}/${model.name}" # Directory to save model checkpoints and logs
   workers: 4 # Number of workers for data loading
   use_augmentation: true # Uses default augmentation pipeline from YOLOv5 repo, can be modified in the future if needed
   device: "cuda"  # or "cpu" if you want to train on CPU for whatever reason

@@ -59,6 +59,7 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         use_amp=cfg.training.use_amp,
         output_dir=cfg.training.output_dir,
         workers=cfg.training.workers,
+        patience=cfg.training.patience,
         augment=cfg.training.use_augmentation,
     )
     if not results["model_path"]:

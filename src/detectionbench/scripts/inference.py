@@ -331,7 +331,7 @@ def _run_rfdetr_on_video(model: Any, options: InferenceOptions) -> tuple[int, in
     writer = None
     if options.save_viz:
         out_path = options.output_dir / f"{options.input_path.stem}_pred.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
         writer = cv2.VideoWriter(str(out_path), fourcc, fps, (frame_w, frame_h))
 
     total_det = 0

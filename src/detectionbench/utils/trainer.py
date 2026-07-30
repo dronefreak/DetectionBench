@@ -67,6 +67,7 @@ class YOLOTrainer:
         use_amp: bool = True,
         output_dir: str | Path = "outputs",
         workers: int = 4,
+        patience: int = 100,
         **extra_kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -81,6 +82,8 @@ class YOLOTrainer:
             use_amp: Use automatic mixed precision
             output_dir: Where to save the final model and logs
             workers: Number of DataLoader workers
+            patience: Epochs with no mAP improvement before early stopping
+                (Ultralytics' native early-stopping mechanism; 0 disables it)
             **extra_kwargs: Passed directly to ultralytics.YOLO.train()
 
         Returns:
@@ -101,6 +104,7 @@ class YOLOTrainer:
             amp=use_amp,
             device=self.device,
             workers=workers,
+            patience=patience,
             project=str(output_dir),
             name=self._model_name,
             exist_ok=True,

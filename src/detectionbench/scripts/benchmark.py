@@ -287,6 +287,7 @@ def _measure_latency(
 def _benchmark_ultralytics(args, handle) -> dict[str, Any]:
     """Benchmark a YOLO or RT-DETR model."""
     is_rtdetr = args.model.lower().startswith("rtdetr")
+    ul_model: Any
     if is_rtdetr:
         from ultralytics import RTDETR
 
