@@ -1,0 +1,22 @@
+# dataset/lisa.yaml
+# Hydra `dataset` config group entry for LISA Traffic Lights ("box" variant).
+#
+# Sourced from a pre-converted YOLO dataset (train/val/test + data.yaml,
+# no prepare_coco/convert step needed). `dataset_yaml` points at a
+# corrected copy of its data.yaml (see detectionbench_data.yaml next to
+# the original in that directory -- the original uses a relative,
+# wrong-case `path:` that doesn't resolve on this filesystem).
+#
+# `dataset_dir` (canonical COCO root, for RF-DETR) is a placeholder below,
+# NOT wired to the existing `coco_rfdetr/` sibling of `yolo/`: its
+# annotation counts (train 44657, valid 7169, test 57649) don't match this
+# "box" YOLO variant's box counts (train 29655, val 4160, test 39398) --
+# it looks like a different conversion (possibly the "bulb" variant, or a
+# different run) and should not be assumed equivalent without checking
+# first. Generate a matching one with:
+#   detectionbench-convert-yolo-to-coco "<box_dir>" <coco_out> --dataset-yaml "<box_dir>/detectionbench_data.yaml"
+
+name: lisa
+dataset_yaml: "/home/neural_debugger/Downloads/datasets/LISa/data/LISA-Traffic-Lights/data/yolo/box/detectionbench_data.yaml"
+dataset_dir: "/home/neural_debugger/Downloads/datasets/LISa/yolo_dataset_coco"
+num_classes: 7

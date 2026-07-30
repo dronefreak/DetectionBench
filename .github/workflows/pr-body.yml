@@ -1,0 +1,59 @@
+name: PR Body Validation
+
+on:
+  pull_request:
+    # Runs on 'edited' and 'reopened' only — the 'opened' event is handled by
+    # the auto-populate workflow, which edits the body and triggers 'edited'.
+    types: [edited, reopened]
+
+jobs:
+  validate-body:
+    name: Validate PR Body
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check PR body is not empty
+        run: |
+          set -euo pipefail
+
+          BODY=$(cat <<'BODY_EOF'
+          ${{ github.event.pull_request.body }}
+          BODY_EOF
+          )
+
+          # Strip HTML comments, whitespace, and section headers
+          CLEANED=$(echo "$BODY" | sed 's/<!--.*-->//g; /^## /d; /^- \[ \]/d; s/^[[:space:]]*//; s/[[:space:]]*$//; /^$/d; /^-$/d')
+
+          if [[ -z "$CLEANED" ]]; then
+            echo "::error::PR body is empty. Please provide a description of your changes."
+            echo ""
+            echo "A good PR description should include:"
+            echo "  - What: A summary of the changes made"
+            echo "  - Why: The motivation or issue being addressed"
+            echo "  - How: Key implementation details (if non-obvious)"
+            echo "  - Testing: How the changes were verified"
+            exit 1
+          fi
+
+          # Check minimum length (at least 20 characters of meaningful content)
+          CHAR_COUNT=${#CLEANED}
+          if [[ "$CHAR_COUNT" -lt 20 ]]; then
+            echo "::error::PR body is too short ($CHAR_COUNT chars). Please provide a meaningful description."
+            exit 1
+          fi
+
+          echo "PR body is present ($CHAR_COUNT chars)."
+
+      - name: Check for placeholder text
+        run: |
+          set -euo pipefail
+
+          BODY=$(cat <<'BODY_EOF'
+          ${{ github.event.pull_request.body }}
+          BODY_EOF
+          )
+
+          # Warn if common placeholder patterns are detected
+          if echo "$BODY" | grep -qiE '(TODO|FIXME|PLACEHOLDER|fill in|describe here|add description)'; then
+            echo "::warning::PR body may contain placeholder text. Please ensure all sections are filled in."
+          fi

@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+message: >-
+  If you use this code, please cite it using the metadata below.
+  If you use one of the benchmarked datasets themselves, please instead
+  cite the original dataset paper(s) listed under "references".
+title: DetectionBench
+type: software
+authors:
+  - family-names: Saksena
+    given-names: Saumya
+license: Apache-2.0
+repository-code: "https://github.com/<your-username>/detectionbench"
+version: 0.1.0
+date-released: "2026-07-29"
+keywords:
+  - object-detection
+  - benchmark
+  - yolo
+  - rf-detr
+  - hydra
+  - pytorch
+  - computer-vision
+references:
+  - type: conference-paper
+    title: >-
+      DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis
+    authors:
+      - family-names: Pfitzmann
+        given-names: Birgit
+      - family-names: Auer
+        given-names: Christoph
+      - family-names: Dolfi
+        given-names: Michele
+      - family-names: Nassar
+        given-names: Ahmed S.
+      - family-names: Staar
+        given-names: Peter W. J.
+    collection-title: >-
+      Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery
+      and Data Mining (KDD '22)
+    start: 3743
+    end: 3751
+    year: 2022
+    doi: 10.1145/3534678.3539043

@@ -1,0 +1,49 @@
+# config.yaml
+# Hydra-based configuration for DetectionBench (YOLO / RT-DETR via Ultralytics)
+
+defaults:
+  - dataset: doclaynet # which registered dataset to train/evaluate on; override with dataset=<key>
+  - _self_ # this makes the top-level config take priority over sub-configs, see https://hydra.cc/docs/upgrades/1.0_to_1.1/default_composition_order/
+
+model:
+  # Model parameters
+  name: "yolov5s" # Model architecture (e.g., "yolov8s", "yolov9m", "yolo11l", "yolo26x" etc.)
+  pretrained: true # Use pretrained weights for the model
+  num_classes: ${dataset.num_classes} # Number of classes in the selected dataset
+
+training:
+  # Training parameters
+  dataset_yaml: ${dataset.dataset_yaml} # Path to the Ultralytics dataset configuration file
+  epochs: 500 # Number of training epochs
+  batch_size: 32 # Batch size for training
+  learning_rate: 0.001 # Initial learning rate
+  imgsz: 640 # Input image size (height and width)
+  optimizer: "adam" # Type of optimizer (e.g., "adam", "sgd")
+  use_scheduler: true # Use learning rate scheduler
+  scheduler_type: "cosine" # Type of learning rate scheduler (e.g., "step", "cosine", "exponential")
+  scheduler_step_size: 10 # Step size for step scheduler
+  scheduler_gamma: 0.1 # Gamma for step scheduler
+  use_amp: true # Use Automatic Mixed Precision (AMP) for faster training and lower memory usage
+  output_dir: "experiments/${dataset}/${model.name}" # Directory to save model checkpoints and logs
+  workers: 4 # Number of workers for data loading
+  use_augmentation: true # Uses default augmentation pipeline from YOLOv5 repo, can be modified in the future if needed
+  device: "cuda"  # or "cpu" if you want to train on CPU for whatever reason
+
+evaluation:
+  # Evaluation parameters
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt # Path to the model checkpoint for evaluation
+  model: ${model.name} # Model architecture for evaluation (should match the training model)
+  num_classes: ${model.num_classes} # Number of classes in the dataset (should match the training model)
+  dataset_yaml: ${training.dataset_yaml} # Path to the dataset configuration file
+  batch_size: ${training.batch_size} # Batch size for evaluation
+  num_workers: ${training.workers} # Number of workers for data loading during evaluation
+  score_threshold: 0.05 # Confidence score threshold for predictions
+  iou_threshold: 0.5 # IoU threshold for Non-Maximum Suppression (NMS)
+  soft_nms: false # Use Soft-NMS instead of standard NMS
+  device: ${training.device} # or "cpu" if you want to evaluate on CPU for whatever reason
+  output_dir: ${training.output_dir}/${model.name}/evaluation # Directory to save evaluation results
+  save_predictions: true # Save predictions (bounding boxes, labels, scores) to a file
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S} # Directory structure for saving outputs, organized by model name and timestamp

@@ -1,0 +1,20 @@
+# dataset/brackish.yaml
+# Hydra `dataset` config group entry for Brackish Underwater.
+#
+# Sourced from a Roboflow-exported YOLO dataset (already train/valid/test +
+# data.yaml, no prepare_coco/convert step needed). `dataset_yaml` points at
+# a corrected copy of its data.yaml (see detectionbench_data.yaml next to
+# the original in that directory -- the Roboflow-generated one uses a
+# relative `../train/images` pattern that resolves incorrectly).
+#
+# `dataset_dir` (canonical COCO root, for RF-DETR) is not generated yet.
+# Create it with:
+#   detectionbench-convert-yolo-to-coco "<yolo_dir>" <coco_out> --dataset-yaml "<yolo_dir>/detectionbench_data.yaml"
+#
+# NOTE: ~15% of images have no annotations (background-only frames); this
+# is expected for Brackish, unlike ExDark where every image has >=1 box.
+
+name: brackish
+dataset_yaml: "/home/neural_debugger/Downloads/datasets/Brackish/Brackish Underwater.v1-1920x1080.yolo26/detectionbench_data.yaml"
+dataset_dir: "/home/neural_debugger/Downloads/datasets/Brackish/yolo_dataset_coco"
+num_classes: 6

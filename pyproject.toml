@@ -1,0 +1,156 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "detectionbench"
+version = "0.1.0"
+description = "Reproducible benchmarks for modern object detectors on real-world datasets"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Saumya Saksena", email = "kumaar324@gmail.com"}
+]
+maintainers = [
+    {name = "Saumya Saksena", email = "kumaar324@gmail.com"}
+]
+keywords = [
+    "computer-vision",
+    "object-detection",
+    "benchmark",
+    "yolo",
+    "rf-detr",
+    "pytorch",
+    "deep-learning",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+
+dependencies = [
+    "hydra-core>=1.3.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "numpy>=1.21.0",
+    "pillow>=9.0.0",
+    "matplotlib>=3.5.0",
+    "opencv-python>=4.7.0",
+    "PyYAML>=6.0.0",
+    "tqdm>=4.65.0",
+    "albumentations>=2.0.1",
+    "ultralytics>=8.0.0",
+    "rich>=14.0.0",
+    "supervision>=0.29.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.6.0",
+    "mypy>=1.4.0",
+    "types-PyYAML>=6.0.0",
+    "bandit>=1.7.0",
+    "pre-commit>=3.3.0",
+]
+coco = [
+    "pycocotools>=2.0.6",
+]
+rfdetr = [
+    "rfdetr[train,loggers]>=1.0.0",
+]
+benchmark = [
+    "psutil>=5.9.0",
+    "thop>=0.1.1",
+    "fvcore>=0.1.5",
+    "torchinfo>=1.8.0",
+    "nvidia-ml-py>=12.0.0",
+]
+all = [
+    "detectionbench[dev,coco,rfdetr,benchmark]",
+]
+
+[project.scripts]
+detectionbench-train = "detectionbench.scripts.train:main"
+detectionbench-train-rfdetr = "detectionbench.scripts.train_rfdetr:main"
+detectionbench-evaluate = "detectionbench.scripts.evaluate:main"
+detectionbench-evaluate-rfdetr = "detectionbench.scripts.evaluate_rfdetr:main"
+detectionbench-infer = "detectionbench.scripts.inference:main"
+detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
+detectionbench-prepare = "detectionbench.scripts.prepare_dataset:main"
+detectionbench-convert-yolo = "detectionbench.utils.convert_to_yolo:main"
+detectionbench-convert-yolo-to-coco = "detectionbench.utils.convert_yolo_to_coco:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "S", "D", "PLR"]
+extend-ignore = [
+    "E203",   # Black-compatible slice formatting
+    "D203",   # Google style: no blank line before class (keep D211)
+    "D212",   # Google style: multi-line summary on second line (keep D213)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "D100", "D101", "D102",  # No docstring requirements in tests
+    "S101",                  # allow assert
+    "S602",                  # shell=True in subprocess (tests only)
+    "PLR2004",               # Magic values in assertions are normal
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+
+[tool.mypy]
+# Type checking
+ignore_missing_imports = true
+no_error_summary = true
+pretty = true
+install_types = true
+files = "src,tests"
+
+[tool.bandit]
+# Security static analysis
+targets = ["src"]
+confidence-level = "medium"
+quiet = true
+
+[tool.yamllint]
+# YAML linter config for docker/configs etc.
+extends = "default"
+rules.line-length.max = 120
+rules.document-start = false
+
+[tool.prettier]
+# Optional formatting for Markdown/JSON/YAML
+single-quote = true
+trailing-comma = "all"
+print-width = 88

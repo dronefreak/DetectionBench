@@ -1,0 +1,34 @@
+# .yamllint
+extends: default
+
+rules:
+  # GitHub Actions REQUIRE unquoted true/false for certain keys
+  truthy:
+    allowed-values: ["true", "false", "on", "off", "yes", "no"]
+    check-keys: false  # Critical: don't validate GitHub Actions boolean keys
+
+  # Realistic line lengths for CI workflows (URLs, commands)
+  line-length:
+    max: 160
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+  # Enforce newline at EOF (pre-commit already does this)
+  new-lines:
+    type: unix
+
+  # Ignore GitHub Actions schema-specific constructs
+  comments-indentation: disable
+  indentation:
+    indent-sequences: consistent
+
+# Apply stricter rules to project YAML (configs), relaxed for workflows
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+
+ignore: |
+  .git/
+  __pycache__/
+  .venv/
+  venv/

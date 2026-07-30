@@ -1,0 +1,13 @@
+# dataset/aquarium.yaml
+# Hydra `dataset` config group entry for Aquarium (stub -- not yet available).
+#
+# Paths below are placeholders. Once the adapter
+# (detectionbench.datasets.aquarium) is implemented and the raw dataset is
+# downloaded, generate real data with:
+#   detectionbench-prepare --dataset aquarium --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+
+name: aquarium
+dataset_yaml: datasets/aquarium/yolo_dataset/data.yaml
+dataset_dir: datasets/aquarium/yolo_dataset_coco
+num_classes: 7

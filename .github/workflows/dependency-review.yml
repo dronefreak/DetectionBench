@@ -1,0 +1,23 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always

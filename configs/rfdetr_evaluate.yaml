@@ -1,0 +1,31 @@
+# rfdetr_evaluate.yaml
+# Hydra-based configuration for RF-DETR evaluation
+
+defaults:
+  - dataset: doclaynet # which registered dataset to evaluate on; override with dataset=<key>
+  - _self_
+
+model:
+  name: "rfdetr-nano"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: null
+
+evaluation:
+  dataset_dir: ${dataset.dataset_dir}
+  checkpoint: "experiments/${dataset}/${model.name}/checkpoint_best_total.pth"
+  split: "test" # train, valid, or test
+  output_dir: "experiments/${dataset}/${model.name}/evaluation"
+  device: "cuda"
+  score_threshold: 0.0
+  optimize_for_inference: true
+  compile_inference: true
+  inference_batch_size: 1
+  inference_dtype: "float32" # float32, float16, bfloat16
+  cleanup_gpu_before_load: false
+  cleanup_gpu_after_eval: false
+  verbose_cleanup: false
+
+hydra:
+  run:
+    dir: ${evaluation.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

@@ -1,0 +1,65 @@
+name: Auto-populate PR Body
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  populate-body:
+    name: Generate PR Body
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+
+      - name: Check if PR body needs population
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q '.body')
+
+          # Strip HTML comments, headers, whitespace, checklist items
+          STRIPPED=$(echo "$CURRENT_BODY" \
+            | sed 's/<!--.*-->//g' \
+            | sed '/^## /d' \
+            | sed '/^- \[.\]/d' \
+            | sed '/^-$/d' \
+            | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+            | sed '/^$/d')
+
+          if [[ -n "$STRIPPED" ]]; then
+            echo "PR body already has custom content. Skipping auto-populate."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR body is empty or template-only. Will generate content."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate and update PR body
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+
+          BODY=$(python3 .github/scripts/generate_pr_body.py)
+          gh pr edit "$PR_NUMBER" --body "$BODY"
+          echo "PR body has been auto-populated."

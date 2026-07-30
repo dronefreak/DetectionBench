@@ -1,0 +1,47 @@
+# rfdetr.yaml
+# Hydra-based configuration for RF-DETR training
+
+defaults:
+  - dataset: doclaynet # which registered dataset to train on; override with dataset=<key>
+  - _self_
+
+model:
+  name: "rfdetr-nano" # Supported: rfdetr-nano, rfdetr-small, rfdetr-medium, rfdetr-large
+  num_classes: ${dataset.num_classes} # Set to null to let RF-DETR infer the class count from the dataset
+  pretrain_weights: null # Optional checkpoint path to continue from or override default pretrained weights
+  resolution: null # Optional input resolution override; null keeps the model family's default resolution
+
+training:
+  dataset_dir: ${dataset.dataset_dir} # Root dir with train/valid/test and _annotations.coco.json files
+  dataset_file: "roboflow" # Supports the requested train/valid/test COCO-style layout
+  output_dir: "experiments/${dataset}/${model.name}" # Base directory for RF-DETR artifacts
+  epochs: 500
+  batch_size: 4 # Integer or "auto"
+  grad_accum_steps: 4
+  learning_rate: 0.0001
+  learning_rate_encoder: 0.00015
+  scheduler_type: "step" # Supported by RF-DETR train config: step, cosine
+  checkpoint_interval: 100
+  eval_interval: 1
+  workers: 4
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto" # auto, bf16, fp16
+  tensorboard: true
+  wandb: false
+  early_stopping: false
+  early_stopping_patience: 100
+  early_stopping_min_delta: 0.001
+  progress_bar: "rich" # rich, tqdm, or null
+  augmentation_backend: "gpu" # cpu, auto, gpu
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null # Optional checkpoint path, or the literal "last"
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

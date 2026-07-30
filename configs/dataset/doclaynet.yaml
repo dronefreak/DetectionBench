@@ -1,0 +1,12 @@
+# dataset/doclaynet.yaml
+# Hydra `dataset` config group entry for DocLayNet.
+#
+# `dataset_yaml` / `dataset_dir` point at YOUR locally converted data.
+# Regenerate them for a new machine with:
+#   detectionbench-prepare --dataset doclaynet --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+
+name: doclaynet
+dataset_yaml: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset_coco
+num_classes: 11

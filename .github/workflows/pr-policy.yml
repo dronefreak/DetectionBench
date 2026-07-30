@@ -1,0 +1,69 @@
+name: PR Policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, labeled, unlabeled, reopened]
+
+jobs:
+  title-convention:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check conventional commit format
+        run: |
+          set -euo pipefail
+          TITLE="${{ github.event.pull_request.title }}"
+          PATTERN="^(feat|fix|docs|doc|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+"
+          if [[ ! "$TITLE" =~ $PATTERN ]]; then
+            echo "::error::PR title does not follow Conventional Commits format."
+            echo ""
+            echo "Expected format: <type>(<optional scope>): <description>"
+            echo "  Types: feat, fix, docs, doc, style, refactor, perf, test, build, ci, chore, revert"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add decrement CLI command"
+            echo "  fix(core): handle empty config file"
+            echo "  docs: update installation instructions"
+            echo ""
+            echo "Got: '$TITLE'"
+            exit 1
+          fi
+          echo "PR title follows Conventional Commits format."
+
+  label-check:
+    name: Require Label
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check for at least one label
+        run: |
+          set -euo pipefail
+          LABEL_COUNT=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq 'length')
+          if [[ "$LABEL_COUNT" -eq 0 ]]; then
+            echo "::error::PR must have at least one label before merging."
+            echo "Consider adding a label such as: bug, enhancement, documentation, maintenance, etc."
+            exit 1
+          fi
+          echo "PR has $LABEL_COUNT label(s)."
+
+  branch-naming:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check branch naming convention
+        run: |
+          set -euo pipefail
+          BRANCH="${{ github.head_ref }}"
+          PATTERN="^(feature|fix|bugfix|hotfix|docs|chore|refactor|test|ci|release|claude)/"
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "::warning::Branch name '$BRANCH' does not follow the recommended naming convention."
+            echo ""
+            echo "Recommended format: <type>/<short-description>"
+            echo "  Types: feature, fix, bugfix, hotfix, docs, chore, refactor, test, ci, release"
+            echo ""
+            echo "Examples:"
+            echo "  feature/add-decrement-cli"
+            echo "  fix/empty-config-handling"
+          fi

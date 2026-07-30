@@ -1,0 +1,13 @@
+# dataset/seadronessee.yaml
+# Hydra `dataset` config group entry for SeaDronesSee (stub -- not yet available).
+#
+# Paths below are placeholders. Once the adapter
+# (detectionbench.datasets.seadronessee) is implemented and the raw dataset
+# is downloaded, generate real data with:
+#   detectionbench-prepare --dataset seadronessee --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+
+name: seadronessee
+dataset_yaml: datasets/seadronessee/yolo_dataset/data.yaml
+dataset_dir: datasets/seadronessee/yolo_dataset_coco
+num_classes: 6

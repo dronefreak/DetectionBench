@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            pip-${{ runner.os }}-3.11-
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: pre-commit-
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Lint check with ruff
+        run: ruff check src/ tests/
+
+      - name: Type check with mypy
+        # NOTE: add `tests/` back here once a test suite exists -- mypy
+        # (unlike ruff) hard-fails when given an explicit path with no
+        # .py files in it.
+        run: mypy src/
+
+      - name: Security check with bandit
+        run: bandit -c pyproject.toml -r src/
+
+  test:
+    name: Test (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            pip-${{ runner.os }}-${{ matrix.python-version }}-
+            pip-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests with coverage
+        run: |
+          set -euo pipefail
+          if [ -d tests ] && find tests -name 'test_*.py' -print -quit | grep -q .; then
+            python -m pytest tests/ \
+              -v \
+              --cov=detectionbench \
+              --cov-fail-under=90 \
+              --cov-report=term-missing \
+              --cov-report=xml
+          else
+            echo "::warning::No tests/ directory yet - skipping test run. Add tests before relying on this gate."
+          fi
+
+      - name: Upload coverage report
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: warn
