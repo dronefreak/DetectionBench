@@ -226,3 +226,13 @@ experiments/
 .onnx
 .engine
 .trt
+
+# Template
+template/
+
+# Datasets
+datasets/
+dataset_cards/
+
+# Banners
+banners/

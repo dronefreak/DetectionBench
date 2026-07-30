@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "detectionbench"
 version = "0.1.0"
 description = "Reproducible benchmarks for modern object detectors on real-world datasets"
-readme = "README.md"
+readme = ".github/README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
 authors = [
@@ -97,6 +97,8 @@ detectionbench-evaluate-rfdetr = "detectionbench.scripts.evaluate_rfdetr:main"
 detectionbench-infer = "detectionbench.scripts.inference:main"
 detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
 detectionbench-prepare = "detectionbench.scripts.prepare_dataset:main"
+detectionbench-dataset-banner = "detectionbench.scripts.dataset_banner:main"
+detectionbench-repo-showcase = "detectionbench.scripts.repo_showcase:main"
 detectionbench-convert-yolo = "detectionbench.utils.convert_to_yolo:main"
 detectionbench-convert-yolo-to-coco = "detectionbench.utils.convert_yolo_to_coco:main"
 
