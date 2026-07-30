@@ -41,6 +41,7 @@ evaluation:
   score_threshold: 0.05 # Confidence score threshold for predictions
   iou_threshold: 0.5 # IoU threshold for Non-Maximum Suppression (NMS)
   soft_nms: false # Use Soft-NMS instead of standard NMS
+  split: ${dataset.eval_split} # Which split to evaluate on (most datasets: test; some have no test labels, e.g. seadronessee: valid)
   device: ${training.device} # or "cpu" if you want to evaluate on CPU for whatever reason
   output_dir: ${training.output_dir}/${model.name}/evaluation # Directory to save evaluation results
   save_predictions: true # Save predictions (bounding boxes, labels, scores) to a file

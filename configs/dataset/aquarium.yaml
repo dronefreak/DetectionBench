@@ -11,3 +11,5 @@ name: aquarium
 dataset_yaml: datasets/aquarium/yolo_dataset/data.yaml
 dataset_dir: datasets/aquarium/yolo_dataset_coco
 num_classes: 7
+
+eval_split: test

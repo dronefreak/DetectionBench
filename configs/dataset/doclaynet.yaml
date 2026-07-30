@@ -10,3 +10,5 @@ name: doclaynet
 dataset_yaml: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset/data.yaml
 dataset_dir: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset_coco
 num_classes: 11
+
+eval_split: test

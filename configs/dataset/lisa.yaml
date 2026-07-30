@@ -20,3 +20,5 @@ name: lisa
 dataset_yaml: "/home/neural_debugger/Downloads/datasets/LISa/data/LISA-Traffic-Lights/data/yolo/box/detectionbench_data.yaml"
 dataset_dir: "/home/neural_debugger/Downloads/datasets/LISa/yolo_dataset_coco"
 num_classes: 7
+
+eval_split: test

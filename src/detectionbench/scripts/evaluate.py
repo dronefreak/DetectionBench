@@ -39,6 +39,7 @@ class EvaluationOptions:
     device: str
     output_dir: Path
     save_predictions: bool = False
+    split: str = "test"
 
 
 def parse_args() -> argparse.Namespace:
@@ -68,6 +69,12 @@ def parse_args() -> argparse.Namespace:
 
     # Dataset
     parser.add_argument("--dataset-yaml", required=True, help="Dataset YAML file")
+    parser.add_argument(
+        "--split",
+        default="test",
+        help="Dataset split to evaluate (some datasets, e.g. seadronessee, "
+        "have no public test-set labels -- use 'val' for those)",
+    )
     parser.add_argument("--batch-size", type=int, default=4, help="Batch size")
     parser.add_argument("--num-workers", type=int, default=4, help="DataLoader workers")
 
@@ -121,7 +128,7 @@ def evaluate_yolo(options: EvaluationOptions) -> dict[str, Any]:
     results = model.val(
         data=str(options.dataset_yaml),
         device=options.device,
-        split="test",
+        split=options.split,
         save_json=options.save_predictions,
         project=str(options.output_dir.resolve()),
         name="yolo_eval",
@@ -263,6 +270,7 @@ def main() -> None:
             device=args.device,
             output_dir=output_dir,
             save_predictions=args.save_predictions,
+            split=args.split,
         )
     )
 

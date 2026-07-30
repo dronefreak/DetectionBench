@@ -18,3 +18,5 @@ name: brackish
 dataset_yaml: "/home/neural_debugger/Downloads/datasets/Brackish/Brackish Underwater.v1-1920x1080.yolo26/detectionbench_data.yaml"
 dataset_dir: "/home/neural_debugger/Downloads/datasets/Brackish/yolo_dataset_coco"
 num_classes: 6
+
+eval_split: test

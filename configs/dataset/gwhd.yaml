@@ -1,13 +1,14 @@
 # dataset/gwhd.yaml
-# Hydra `dataset` config group entry for the Global Wheat Head Dataset (stub -- not yet available).
+# Hydra `dataset` config group entry for the Global Wheat Head Dataset.
 #
-# Paths below are placeholders. Once the adapter
-# (detectionbench.datasets.gwhd) is implemented and the raw dataset is
-# downloaded, generate real data with:
+# Converted from the raw GWHD 2021 competition release
+# (images/ + competition_{train,val,test}.csv) via:
 #   detectionbench-prepare --dataset gwhd --raw-dir <raw> --output-dir <coco_out>
 #   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
 
 name: gwhd
-dataset_yaml: datasets/gwhd/yolo_dataset/data.yaml
-dataset_dir: datasets/gwhd/yolo_dataset_coco
+dataset_yaml: /home/neural_debugger/Downloads/datasets/GWHD/gwhd_2021/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/GWHD/gwhd_2021/yolo_dataset_coco
 num_classes: 1
+
+eval_split: test

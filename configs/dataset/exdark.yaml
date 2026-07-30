@@ -15,3 +15,5 @@ name: exdark
 dataset_yaml: /home/neural_debugger/Downloads/datasets/ExDark/Exclusively-Dark-Image.v2i.yolo26/detectionbench_data.yaml
 dataset_dir: /home/neural_debugger/Downloads/datasets/ExDark/yolo_dataset_coco
 num_classes: 12
+
+eval_split: test

@@ -69,7 +69,8 @@ def train_and_evaluate(cfg: DictConfig) -> None:
     console.print(f"  All artifacts saved to: {results['output_dir']}")
 
     console.print(
-        "\n[bold cyan]Evaluating the trained model on test data...[/bold cyan]"
+        f"\n[bold cyan]Evaluating the trained model on the "
+        f"'{cfg.evaluation.split}' split...[/bold cyan]"
     )
     spec = get_spec(cfg.dataset.name)
     metrics = evaluate_yolo(
@@ -81,6 +82,7 @@ def train_and_evaluate(cfg: DictConfig) -> None:
             device=cfg.evaluation.device,
             output_dir=Path(cfg.evaluation.output_dir),
             save_predictions=cfg.evaluation.save_predictions,
+            split=cfg.evaluation.split,
         )
     )
     console.print("\n[bold green]Evaluation metrics:[/bold green]")

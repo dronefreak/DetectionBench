@@ -1,13 +1,18 @@
 # dataset/seadronessee.yaml
-# Hydra `dataset` config group entry for SeaDronesSee (stub -- not yet available).
+# Hydra `dataset` config group entry for SeaDronesSee.
 #
-# Paths below are placeholders. Once the adapter
-# (detectionbench.datasets.seadronessee) is implemented and the raw dataset
-# is downloaded, generate real data with:
+# Converted from the raw "CompressedVersion" release
+# (images/{train,val,test} + annotations/instances_{train,val}.json) via:
 #   detectionbench-prepare --dataset seadronessee --raw-dir <raw> --output-dir <coco_out>
 #   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+#
+# NOTE: there is no public test-set annotation file (images/test/ is a
+# held-out competition set) -- eval_split is "valid", not "test", for this
+# dataset. data.yaml still lists a `test:` path for Ultralytics' schema,
+# but nothing populates it; don't evaluate against it.
 
 name: seadronessee
-dataset_yaml: datasets/seadronessee/yolo_dataset/data.yaml
-dataset_dir: datasets/seadronessee/yolo_dataset_coco
-num_classes: 6
+dataset_yaml: /home/neural_debugger/Downloads/datasets/SeaDronesSee/CompressedVersion/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/SeaDronesSee/CompressedVersion/yolo_dataset_coco
+num_classes: 5
+eval_split: val
