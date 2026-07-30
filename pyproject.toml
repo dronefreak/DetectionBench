@@ -121,7 +121,7 @@ extend-ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
-    "D100", "D101", "D102",  # No docstring requirements in tests
+    "D100", "D101", "D102", "D103",  # No docstring requirements in tests
     "S101",                  # allow assert
     "S602",                  # shell=True in subprocess (tests only)
     "PLR2004",               # Magic values in assertions are normal
