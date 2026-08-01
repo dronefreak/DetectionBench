@@ -8,6 +8,7 @@ import weakref
 from pathlib import Path
 from typing import Any
 
+import cv2
 import hydra
 import numpy as np
 import torch
@@ -257,8 +258,13 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:
             total=len(dataset),
         )
         for _, image, annotations in dataset:
+            # `sv.DetectionDataset` loads images via cv2.imread (BGR); RF-DETR's
+            # `predict()` only auto-converts PIL inputs to RGB and passes raw
+            # ndarrays through unchanged, so BGR must be converted explicitly here
+            # or every prediction is run on colour-swapped input.
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             detections = model.predict(
-                image,
+                rgb_image,
                 threshold=float(cfg.evaluation.score_threshold),
                 include_source_image=False,
             )

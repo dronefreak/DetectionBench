@@ -7,14 +7,12 @@
 # the original in that directory -- the original uses a relative,
 # wrong-case `path:` that doesn't resolve on this filesystem).
 #
-# `dataset_dir` (canonical COCO root, for RF-DETR) is a placeholder below,
-# NOT wired to the existing `coco_rfdetr/` sibling of `yolo/`: its
-# annotation counts (train 44657, valid 7169, test 57649) don't match this
-# "box" YOLO variant's box counts (train 29655, val 4160, test 39398) --
-# it looks like a different conversion (possibly the "bulb" variant, or a
-# different run) and should not be assumed equivalent without checking
-# first. Generate a matching one with:
+# `dataset_dir` (canonical COCO root, for RF-DETR) was generated directly
+# from the `box` YOLO variant via:
 #   detectionbench-convert-yolo-to-coco "<box_dir>" <coco_out> --dataset-yaml "<box_dir>/detectionbench_data.yaml"
+# Its annotation counts (train 44657, valid 7169, test 57649) match the
+# pre-existing `coco_rfdetr/` sibling of `yolo/` and the companion
+# project's own reported counts -- confirmed consistent, not a stale copy.
 
 name: lisa
 dataset_yaml: "/home/neural_debugger/Downloads/datasets/LISa/data/LISA-Traffic-Lights/data/yolo/box/detectionbench_data.yaml"

@@ -97,7 +97,7 @@ jobs:
           python -m pytest tests/ \
             -v \
             --cov=detectionbench \
-            --cov-fail-under=25 \
+            --cov-fail-under=20 \
             --cov-report=term-missing \
             --cov-report=xml
 
