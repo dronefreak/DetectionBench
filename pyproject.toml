@@ -99,6 +99,7 @@ detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
 detectionbench-prepare = "detectionbench.scripts.prepare_dataset:main"
 detectionbench-dataset-banner = "detectionbench.scripts.dataset_banner:main"
 detectionbench-repo-showcase = "detectionbench.scripts.repo_showcase:main"
+detectionbench-generate-model-cards = "detectionbench.scripts.generate_model_cards:main"
 detectionbench-convert-yolo = "detectionbench.utils.convert_to_yolo:main"
 detectionbench-convert-yolo-to-coco = "detectionbench.utils.convert_yolo_to_coco:main"
 

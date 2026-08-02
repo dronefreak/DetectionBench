@@ -1,8 +1,8 @@
 # DetectionBench
 
-> Reproducible benchmarks for modern object detectors on real-world datasets.
+> DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
 
-![Datasets](https://img.shields.io/badge/Datasets-6%20working%20%2B%201%20stub-0aa1a7?style=flat-square)
+![Datasets](https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square)
 ![Models](https://img.shields.io/badge/Models-YOLO%20%2F%20RT--DETR%20%2F%20RF--DETR-blue?style=flat-square)
 ![Format](https://img.shields.io/badge/Export-YOLO%20%7C%20COCO-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-yellow?style=flat-square)
@@ -12,9 +12,13 @@
   <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn"/>
 </p>
 
-DetectionBench is a Hydra-driven framework for training, evaluating, and
-benchmarking object detection models with identical recipes and metrics
-across multiple datasets.
+## Why DetectionBench?
+
+Modern object detection research is overwhelmingly evaluated on a small number of canonical datasets such as COCO. In practice, however, computer vision systems are deployed in domains such as aerial robotics, maritime search and rescue, agriculture, underwater inspection, autonomous driving, document understanding, and many others where datasets are smaller, more specialized, and benchmark results are often difficult to compare.
+
+DetectionBench provides a standardized benchmarking framework for these real-world and underrepresented datasets. By using common dataset adapters, reproducible training recipes, identical evaluation protocols, and unified hardware profiling, DetectionBench enables fair comparison of modern object detectors across diverse application domains.
+
+DetectionBench is a Hydra-driven framework for preparing datasets, training models, evaluating performance, and benchmarking modern object detectors under standardized experimental conditions.
 
 ## Supported Models
 
@@ -32,13 +36,12 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 | Dataset | Domain | Classes | Images | License | Status |
 | --- | --- | --- | --- | --- | --- |
-| DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | ✅ Working (card not yet published) |
-| ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | ✅ Working — [card](../dataset_cards/exdark/README.md) |
-| GWHD 2021 | Agriculture (wheat heads) | 1 | 6,515 | CC BY 4.0 | ✅ Working — [card](../dataset_cards/gwhd/README.md) |
+| DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
+| ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/ExDark) |
+| GWHD 2021 | Agriculture (wheat heads) | 1 | 6,515 | CC BY 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/GWHD) |
 | SeaDronesSee | Maritime UAV / search & rescue | 5 | 10,477** | CC0-1.0 | ✅ Working — [card](../dataset_cards/seadronessee/README.md) |
-| Brackish Underwater | Marine animal detection | 6 | 14,674 | CC BY 4.0 | ✅ Working — [card](../dataset_cards/brackish/README.md) |
-| LISA Traffic Lights | Autonomous driving (traffic lights) | 7 | 43,017 | CC BY-NC-SA 4.0 | ✅ Working — [card](../dataset_cards/lisa/README.md) |
-| Aquarium | Underwater imagery | 7 (planned) | — | TBD | 🚧 Adapter stub, raw data not yet available |
+| Brackish Underwater | Marine animal detection | 6 | 14,674 | CC BY 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/Brackish) |
+| LISA Traffic Lights | Autonomous driving (traffic lights) | 7 | 43,017 | CC BY-NC-SA 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
 
 \* BSD-3-Clause is the license text itself; the original authors separately request non-commercial use — see the dataset card.
 \*\* No public test-set labels for this dataset; train+valid only.

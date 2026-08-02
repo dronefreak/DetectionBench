@@ -10,7 +10,7 @@ a single wide strip.
 
 Dataset locations are read from ``configs/dataset/*.yaml``; any dataset
 whose ``dataset_yaml`` doesn't exist on disk yet (e.g. an unconverted
-stub like Aquarium) is skipped with a warning rather than failing the
+stub dataset) is skipped with a warning rather than failing the
 whole run.
 
 Usage:

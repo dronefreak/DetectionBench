@@ -3,8 +3,8 @@
 Thanks for your interest in contributing! DetectionBench provides Hydra-based
 training, evaluation, and inference tooling for reproducibly benchmarking modern
 object detectors (YOLO, RT-DETR, RF-DETR) across a growing set of real-world
-detection datasets (currently DocLayNet, with SeaDronesSee, GWHD, ExDark, and
-Aquarium adapters in progress -- see `Objectives.md`).
+detection datasets (currently DocLayNet, SeaDronesSee, GWHD, ExDark, Brackish,
+and LISA -- see `Objectives.md`).
 
 Adding a new dataset means implementing one adapter under
 `src/detectionbench/datasets/` (see `doclaynet.py` for a worked example) plus a
@@ -53,7 +53,7 @@ Please open a GitHub issue with:
 ## Note on the Datasets
 
 This repository only contains benchmarking **code** (Apache-2.0 licensed). Every
-benchmarked dataset (DocLayNet, SeaDronesSee, GWHD, ExDark, Aquarium, ...) is a
+benchmarked dataset (DocLayNet, SeaDronesSee, GWHD, ExDark, Brackish, LISA, ...) is a
 third-party dataset redistributed separately under its own original license —
 see each adapter's docstring under `src/detectionbench/datasets/` and
 `CITATION.cff` for details. Please do not open dataset-content issues here;

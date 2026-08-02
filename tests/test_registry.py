@@ -7,7 +7,6 @@ from detectionbench.datasets.base import DatasetAdapter, DatasetSpec
 from detectionbench.datasets.registry import register
 
 _KNOWN_KEYS = {
-    "aquarium",
     "brackish",
     "doclaynet",
     "exdark",
