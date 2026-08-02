@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 r"""
-Generate a static NxN mosaic banner from a YOLO-format dataset.
+Generate a static rows x cols mosaic banner from a YOLO-format dataset.
 
 Randomly samples images that actually have ground-truth boxes (so the
 banner is visually representative rather than blank tiles), draws every
-box + class name on each, letterboxes them into equal square tiles, and
-composes the result into a grid -- useful as a dataset-card banner image
-(e.g. for a Hugging Face dataset repo).
+box + class name on each, center-crops them into equal square tiles (no
+letterbox padding/borders), and composes the result into a grid -- useful
+as a dataset-card banner image (e.g. for a Hugging Face dataset repo).
 
 Works on any YOLO-format dataset (images/{split} + labels/{split} +
 data.yaml), not just ones registered in DetectionBench -- it only relies
@@ -18,7 +18,7 @@ Usage:
       /path/to/yolo_dataset --split train --output banner.jpg
 
   python -m detectionbench.scripts.dataset_banner \
-      /path/to/yolo_dataset --split train --grid-size 4 \
+      /path/to/yolo_dataset --split train --rows 4 --cols 4 \
       --tile-size 512 --min-boxes 2 --seed 42 --output banner.jpg
 """
 
@@ -39,7 +39,8 @@ from detectionbench.utils.convert_yolo_to_coco import (
 )
 
 YOLO_LABEL_FIELD_COUNT = 5
-DEFAULT_GRID_SIZE = 4
+DEFAULT_ROWS = 4
+DEFAULT_COLS = 4
 DEFAULT_TILE_SIZE = 512
 TILE_BACKGROUND_COLOR = (30, 30, 30)
 CANVAS_BACKGROUND_COLOR = (255, 255, 255)
@@ -62,7 +63,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--split", default="train", help="Split to sample images from")
     parser.add_argument(
-        "--grid-size", type=int, default=DEFAULT_GRID_SIZE, help="Grid is NxN"
+        "--rows", type=int, default=DEFAULT_ROWS, help="Number of grid rows"
+    )
+    parser.add_argument(
+        "--cols", type=int, default=DEFAULT_COLS, help="Number of grid columns"
     )
     parser.add_argument(
         "--tile-size",
@@ -153,31 +157,35 @@ def draw_yolo_boxes(
     return out
 
 
-def letterbox_resize(image: np.ndarray, size: int) -> np.ndarray:
-    """Resize an image to size x size, preserving aspect ratio with padding."""
+def center_crop_resize(image: np.ndarray, size: int) -> np.ndarray:
+    """
+    Resize an image to size x size, center-cropping to fill the tile edge-to-edge.
+
+    Deliberately crops rather than letterboxes: padding to preserve aspect
+    ratio leaves a solid-color bar on non-square source images (e.g. LISA's
+    1280x960 frames), which reads as a stray border in the composed mosaic.
+    A small amount of the longer edge is cropped away instead.
+    """
     height, width = image.shape[:2]
-    scale = size / max(height, width)
+    scale = size / min(height, width)
     new_w, new_h = round(width * scale), round(height * scale)
     resized = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-    canvas = np.full((size, size, 3), TILE_BACKGROUND_COLOR, dtype=np.uint8)
-    y_offset = (size - new_h) // 2
-    x_offset = (size - new_w) // 2
-    canvas[y_offset : y_offset + new_h, x_offset : x_offset + new_w] = resized
-    return canvas
+    y_offset = max(0, (new_h - size) // 2)
+    x_offset = max(0, (new_w - size) // 2)
+    return resized[y_offset : y_offset + size, x_offset : x_offset + size]
 
 
 def build_mosaic(
-    tiles: list[np.ndarray], grid_size: int, tile_size: int, margin: int
+    tiles: list[np.ndarray], rows: int, cols: int, tile_size: int, margin: int
 ) -> np.ndarray:
-    """Compose tiles into a grid_size x grid_size mosaic with margins."""
-    canvas_dim = grid_size * tile_size + (grid_size + 1) * margin
-    canvas = np.full(
-        (canvas_dim, canvas_dim, 3), CANVAS_BACKGROUND_COLOR, dtype=np.uint8
-    )
+    """Compose tiles into a rows x cols mosaic with margins."""
+    canvas_h = rows * tile_size + (rows + 1) * margin
+    canvas_w = cols * tile_size + (cols + 1) * margin
+    canvas = np.full((canvas_h, canvas_w, 3), CANVAS_BACKGROUND_COLOR, dtype=np.uint8)
 
     for index, tile in enumerate(tiles):
-        row, col = divmod(index, grid_size)
+        row, col = divmod(index, cols)
         y = margin + row * (tile_size + margin)
         x = margin + col * (tile_size + margin)
         canvas[y : y + tile_size, x : x + tile_size] = tile
@@ -293,12 +301,12 @@ def main() -> None:  # noqa: PLR0912
 
     candidates = select_candidates(image_paths, args.min_boxes)
 
-    num_needed = args.grid_size * args.grid_size
+    num_needed = args.rows * args.cols
     rng = random.Random(args.seed)  # noqa: S311  # nosec B311
     if len(candidates) < num_needed:
         print(
             f"[WARN] Only {len(candidates)} candidate image(s) for a "
-            f"{args.grid_size}x{args.grid_size} grid ({num_needed} needed); "
+            f"{args.rows}x{args.cols} grid ({num_needed} needed); "
             "some tiles will repeat."
         )
     selected = diverse_sample(candidates, num_needed, rng)
@@ -310,7 +318,7 @@ def main() -> None:  # noqa: PLR0912
             print(f"[WARN] Could not read image, skipping: {image_path}")
             continue
         labeled_image = draw_yolo_boxes(image, boxes, config.names)
-        tiles.append(letterbox_resize(labeled_image, args.tile_size))
+        tiles.append(center_crop_resize(labeled_image, args.tile_size))
 
     while len(tiles) < num_needed:
         tiles.append(
@@ -321,7 +329,7 @@ def main() -> None:  # noqa: PLR0912
             )
         )
 
-    mosaic = build_mosaic(tiles, args.grid_size, args.tile_size, args.margin)
+    mosaic = build_mosaic(tiles, args.rows, args.cols, args.tile_size, args.margin)
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

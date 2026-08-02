@@ -2,11 +2,30 @@
 
 > DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
 
-![Datasets](https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square)
-![Models](https://img.shields.io/badge/Models-YOLO%20%2F%20RT--DETR%20%2F%20RF--DETR-blue?style=flat-square)
-![Format](https://img.shields.io/badge/Export-YOLO%20%7C%20COCO-orange?style=flat-square)
-![Python](https://img.shields.io/badge/Python-3.9%2B-yellow?style=flat-square)
-![License](https://img.shields.io/badge/License-Apache--2.0-lightgrey?style=flat-square)
+<div align="center">
+  <img src="https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square" alt="Datasets">
+  <img src="https://img.shields.io/badge/Models-YOLO%20%2F%20RT--DETR%20%2F%20RF--DETR-blue?style=flat-square" alt="Models">
+  <img src="https://img.shields.io/badge/Export-YOLO%20%7C%20COCO-orange?style=flat-square" alt="Format">
+  <img src="https://img.shields.io/badge/License-Apache--2.0-lightgrey?style=flat-square" alt="License">
+  &nbsp;
+  <a href="https://www.python.org/downloads/">
+    <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square" alt="Python">
+  </a>
+  <a href="https://pytorch.org/">
+    <img src="https://img.shields.io/badge/PyTorch-2.0+-red?style=flat-square" alt="PyTorch">
+  </a>
+  <a href="https://github.com/dronefreak/DetectionBench/actions/workflows/ci.yml">
+    <img src="https://github.com/dronefreak/DetectionBench/actions/workflows/ci.yml/badge.svg?style=flat-square" alt="CI">
+  </a>
+  <a href="https://github.com/astral-sh/ruff">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff">
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/Maintained-yes-2ea44f?style=flat-square" alt="Maintained">
+  <a href="CONTRIBUTING.md">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
+  </a>
+</div>
 
 <p align="center">
   <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn"/>

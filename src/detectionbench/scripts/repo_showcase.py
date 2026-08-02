@@ -4,7 +4,7 @@ Generate a horizontal filmstrip banner spanning every converted dataset.
 
 For use as the main repository README's hero image. Picks one
 representative, well-labeled image per dataset (reusing the
-same box-drawing/letterboxing helpers as ``dataset_banner.py``), burns in
+same box-drawing/tile-resizing helpers as ``dataset_banner.py``), burns in
 a caption with the dataset's display name, and stitches the results into
 a single wide strip.
 
@@ -29,8 +29,8 @@ import yaml
 
 from detectionbench.datasets import get_spec, list_datasets
 from detectionbench.scripts.dataset_banner import (
+    center_crop_resize,
     draw_yolo_boxes,
-    letterbox_resize,
     load_dataset_config,
     resolve_split_images,
     select_candidates,
@@ -118,7 +118,7 @@ def caption_tile(image: np.ndarray, text: str, tile_size: int) -> np.ndarray:
 def build_tile(  # noqa: PLR0913
     key: str, split: str, min_boxes: int, tile_size: int, rng: random.Random
 ) -> np.ndarray | None:
-    """Build one captioned, letterboxed, GT-annotated tile for a single dataset."""
+    """Build one captioned, center-cropped, GT-annotated tile for a single dataset."""
     dataset_yaml = resolve_dataset_yaml(key)
     if dataset_yaml is None:
         print(f"[WARN] Skipping '{key}': no converted dataset found yet.")
@@ -144,7 +144,7 @@ def build_tile(  # noqa: PLR0913
         return None
 
     labeled_image = draw_yolo_boxes(image, boxes, config.names)
-    tile = letterbox_resize(labeled_image, tile_size)
+    tile = center_crop_resize(labeled_image, tile_size)
     return caption_tile(tile, get_spec(key).display_name, tile_size)
 
 
