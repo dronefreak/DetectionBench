@@ -36,12 +36,12 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 | Dataset | Domain | Classes | Images | License | Status |
 | --- | --- | --- | --- | --- | --- |
-| DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
-| ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/ExDark) |
-| GWHD 2021 | Agriculture (wheat heads) | 1 | 6,515 | CC BY 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/GWHD) |
-| SeaDronesSee | Maritime UAV / search & rescue | 5 | 10,477** | CC0-1.0 | ✅ Working — [card](../dataset_cards/seadronessee/README.md) |
-| Brackish Underwater | Marine animal detection | 6 | 14,674 | CC BY 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/Brackish) |
-| LISA Traffic Lights | Autonomous driving (traffic lights) | 7 | 43,017 | CC BY-NC-SA 4.0 | ✅ Working — [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
+| DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
+| ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/ExDark) |
+| GWHD 2021 | Agriculture (wheat heads) | 1 | 6,515 | CC BY 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/GWHD) |
+| SeaDronesSee | Maritime UAV / search & rescue | 5 | 10,477** | CC0-1.0 | [card](../dataset_cards/seadronessee/README.md) |
+| Brackish Underwater | Marine animal detection | 6 | 14,674 | CC BY 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/Brackish) |
+| LISA Traffic Lights | Autonomous driving (traffic lights) | 7 | 43,017 | CC BY-NC-SA 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
 
 \* BSD-3-Clause is the license text itself; the original authors separately request non-commercial use — see the dataset card.
 \*\* No public test-set labels for this dataset; train+valid only.
