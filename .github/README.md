@@ -2,33 +2,42 @@
 
 > DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square" alt="Datasets">
-  <img src="https://img.shields.io/badge/Models-YOLO%20%2F%20RT--DETR%20%2F%20RF--DETR-blue?style=flat-square" alt="Models">
-  <img src="https://img.shields.io/badge/Export-YOLO%20%7C%20COCO-orange?style=flat-square" alt="Format">
-  <img src="https://img.shields.io/badge/License-Apache--2.0-lightgrey?style=flat-square" alt="License">
-  &nbsp;
+<br>
+
+<!-- ROW 1: Core Identity (What this project is) -->
+<div align="center" style="margin-bottom: 8px;">
+  <img src="https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square" alt="Datasets" style="margin: 0 4px;">
+  <img src="https://img.shields.io/badge/Models-YOLO%20%2F%20RT--DETR%20%2F%20RF--DETR-blue?style=flat-square" alt="Models" style="margin: 0 4px;">
+  <img src="https://img.shields.io/badge/Export-YOLO%20%7C%20COCO-orange?style=flat-square" alt="Format" style="margin: 0 4px;">
+  <img src="https://img.shields.io/badge/License-Apache--2.0-lightgrey?style=flat-square" alt="License" style="margin: 0 4px;">
+</div>
+
+<!-- ROW 2: Technical Foundation & Quality (How it's built) -->
+<div align="center" style="margin-bottom: 8px;">
   <a href="https://www.python.org/downloads/">
-    <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square" alt="Python">
+    <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square" alt="Python" style="margin: 0 4px;">
   </a>
   <a href="https://pytorch.org/">
-    <img src="https://img.shields.io/badge/PyTorch-2.0+-red?style=flat-square" alt="PyTorch">
+    <img src="https://img.shields.io/badge/PyTorch-2.0+-red?style=flat-square" alt="PyTorch" style="margin: 0 4px;">
   </a>
   <a href="https://github.com/dronefreak/DetectionBench/actions/workflows/ci.yml">
-    <img src="https://github.com/dronefreak/DetectionBench/actions/workflows/ci.yml/badge.svg?style=flat-square" alt="CI">
+    <img src="https://github.com/dronefreak/DetectionBench/actions/workflows/ci.yml/badge.svg?style=flat-square" alt="CI" style="margin: 0 4px;">
   </a>
   <a href="https://github.com/astral-sh/ruff">
-    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff" style="margin: 0 4px;">
   </a>
-  &nbsp;
-  <img src="https://img.shields.io/badge/Maintained-yes-2ea44f?style=flat-square" alt="Maintained">
+</div>
+
+<!-- ROW 3: Project Health & Community (Secondary metadata) -->
+<div align="center" style="margin-bottom: 24px;">
+  <img src="https://img.shields.io/badge/Maintained-yes-2ea44f?style=flat-square" alt="Maintained" style="margin: 0 4px;">
   <a href="CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" style="margin: 0 4px;">
   </a>
 </div>
 
 <p align="center">
-  <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn"/>
+  <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn" style="max-width: 100%; border-radius: 8px;">
 </p>
 
 ## Why DetectionBench?
