@@ -4,8 +4,6 @@
 
 # DetectionBench
 
-<br>
-
 <!-- ROW 1: Core Identity (What this project is) -->
 <div align="center" style="margin-bottom: 8px;">
   <img src="https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square" alt="Datasets" style="margin: 0 4px;">
