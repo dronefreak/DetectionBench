@@ -34,7 +34,7 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 ## Supported Datasets
 
-| Dataset | Domain | Classes | Images | License | Status |
+| Dataset | Domain | Classes | Images | License | Location |
 | --- | --- | --- | --- | --- | --- |
 | DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
 | ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/ExDark) |
