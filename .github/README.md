@@ -34,17 +34,17 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 ## Supported Datasets
 
-| Dataset | Domain | Classes | Images | License | Location |
-| --- | --- | --- | --- | --- | --- |
-| DocLayNet | Document layout analysis | 11 | 80,863 | CDLA-Permissive-1.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
-| ExDark | Low-light robustness | 12 | 7,344 | BSD-3-Clause* | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/ExDark) |
-| GWHD 2021 | Agriculture (wheat heads) | 1 | 6,515 | CC BY 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/GWHD) |
-| SeaDronesSee | Maritime UAV / search & rescue | 5 | 10,477** | CC0-1.0 | [card](../dataset_cards/seadronessee/README.md) |
-| Brackish Underwater | Marine animal detection | 6 | 14,674 | CC BY 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/Brackish) |
-| LISA Traffic Lights | Autonomous driving (traffic lights) | 7 | 43,017 | CC BY-NC-SA 4.0 | [<img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="HF" width="14"/> dataset](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
+| Dataset | Primary Task | Domain | Classes | Images | License | Source |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **DocLayNet** | Object Detection / Layout Analysis | Document | 11 | 80,863 | CDLA-Permissive-1.0 | [Hugging Face](https://huggingface.co/datasets/docling-project/DocLayNet-v1.2) |
+| **ExDark** | Object Detection | Low-light Robustness | 12 | 7,344 | BSD-3-Clause [^1] | [Hugging Face](https://huggingface.co/datasets/dronefreak/ExDark) |
+| **GWHD 2021** | Object Detection | Agriculture (Wheat Heads) | 1 | 6,515 | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/GWHD) |
+| **SeaDronesSee** | Object Detection / Tracking | Maritime UAV / Search & Rescue | 5 | 10,477 [^2] | CC0-1.0 | [Dataset Card](../dataset_cards/seadronessee/README.md) |
+| **Brackish Underwater** | Object Detection | Marine Animal Detection | 6 | 14,674 | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/Brackish) |
+| **LISA Traffic Lights** | Object Detection | Autonomous Driving | 7 | 43,017 | CC BY-NC-SA 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
 
-\* BSD-3-Clause is the license text itself; the original authors separately request non-commercial use — see the dataset card.
-\*\* No public test-set labels for this dataset; train+valid only.
+[^1]: BSD-3-Clause is the license text itself; the original authors separately request non-commercial use. See the dataset card for compliance details.
+[^2]: No public test-set labels are available for this dataset; this count reflects train and validation splits only.
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
