@@ -28,14 +28,6 @@
   </a>
 </div>
 
-<!-- ROW 3: Project Health & Community (Secondary metadata) -->
-<div align="center" style="margin-bottom: 24px;">
-  <img src="https://img.shields.io/badge/Maintained-yes-2ea44f?style=flat-square" alt="Maintained" style="margin: 0 4px;">
-  <a href="CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" style="margin: 0 4px;">
-  </a>
-</div>
-
 > DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
 
 ## Why DetectionBench?
