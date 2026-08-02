@@ -36,9 +36,9 @@
   </a>
 </div>
 
-<p align="center">
+<!-- <p align="center">
   <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn" style="max-width: 100%; border-radius: 8px;">
-</p>
+</p> -->
 
 ## Why DetectionBench?
 
