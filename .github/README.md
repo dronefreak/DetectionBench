@@ -1,6 +1,8 @@
-# DetectionBench
+<p align="center">
+  <img src="../assets/banner.png" alt="DetectionBench" style="max-width: 100%; border-radius: 8px;">
+</p>
 
-> DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
+# DetectionBench
 
 <br>
 
@@ -36,9 +38,7 @@
   </a>
 </div>
 
-<!-- <p align="center">
-  <img src="../assets/filmstrip.jpg" alt="DetectionBench dataset showcase — one sample per dataset, ground-truth boxes drawn" style="max-width: 100%; border-radius: 8px;">
-</p> -->
+> DetectionBench exists to make benchmark results on real-world and underrepresented object detection datasets as reproducible, comparable, and trustworthy as benchmarks on COCO have become.
 
 ## Why DetectionBench?
 
