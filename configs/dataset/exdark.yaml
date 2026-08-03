@@ -7,9 +7,10 @@
 # the original in that directory -- the Roboflow-generated one uses a
 # relative `../train/images` pattern that resolves incorrectly).
 #
-# `dataset_dir` (canonical COCO root, for RF-DETR) is not generated yet.
-# Create it with:
+# `dataset_dir` (canonical COCO root, for RF-DETR) was generated via:
 #   detectionbench-convert-yolo-to-coco --input-dir <yolo_dir> --output-dir <coco_out> --dataset-yaml <yolo_dir>/detectionbench_data.yaml
+# Verified 2026-08-03: train 5877 / valid 736 / test 734 images, categories
+# match the 12-class spec, both COCO and YOLO representations checked.
 
 name: exdark
 dataset_yaml: /home/neural_debugger/Downloads/datasets/ExDark/Exclusively-Dark-Image.v2i.yolo26/detectionbench_data.yaml

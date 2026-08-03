@@ -1,4 +1,4 @@
-# dataset/visdrone-det.yaml
+# dataset/visdrone.yaml
 # Hydra `dataset` config group entry for VisDrone2019-DET (aerial detection).
 #
 # Already benchmarked end-to-end across the full YOLO model spectrum via a
@@ -10,15 +10,17 @@
 # that zoo doesn't have yet, or running it through DetectionBench's own
 # golden regression tests).
 #
-# Paths below are placeholders -- no local raw copy or conversion has been
-# run yet. Once the raw dataset is downloaded (VisDrone2019-DET-{train,val,
-# test-dev}/{images,annotations}), generate real data with:
-#   detectionbench-prepare-coco --dataset visdrone-det --raw-dir <raw> --output-dir <coco_out>
+# Converted from the raw VisDrone2019-DET release
+# (~/projects/VisDrone-dataset-python-toolkit/data/VisDrone2019-DET-{train,val,
+# test-dev}/{images,annotations}) via:
+#   detectionbench-prepare-coco --dataset visdrone --raw-dir <raw> --output-dir <coco_out>
 #   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# Verified 2026-08-03: train 6471 / valid 548 / test 1610 images, categories
+# match the 11-class spec, both COCO and YOLO representations checked.
 
-name: visdrone-det
-dataset_yaml: datasets/visdrone-det/yolo_dataset/data.yaml
-dataset_dir: datasets/visdrone-det/yolo_dataset_coco
+name: visdrone
+dataset_yaml: /home/neural_debugger/Downloads/datasets/VisDrone/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/VisDrone/yolo_dataset_coco
 num_classes: 11
 
 eval_split: test

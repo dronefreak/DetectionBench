@@ -13,7 +13,7 @@ _KNOWN_KEYS = {
     "gwhd",
     "lisa",
     "seadronessee",
-    "visdrone-det",
+    "visdrone",
 }
 
 

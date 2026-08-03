@@ -7,9 +7,11 @@
 # the original in that directory -- the Roboflow-generated one uses a
 # relative `../train/images` pattern that resolves incorrectly).
 #
-# `dataset_dir` (canonical COCO root, for RF-DETR) is not generated yet.
-# Create it with:
+# `dataset_dir` (canonical COCO root, for RF-DETR) was generated via:
 #   detectionbench-convert-yolo-to-coco --input-dir "<yolo_dir>" --output-dir <coco_out> --dataset-yaml "<yolo_dir>/detectionbench_data.yaml"
+# Verified 2026-08-03: train 11739 / valid 1467 / test 1468 images,
+# categories match the 6-class spec, both COCO and YOLO representations
+# checked.
 #
 # NOTE: ~15% of images have no annotations (background-only frames); this
 # is expected for Brackish, unlike ExDark where every image has >=1 box.
