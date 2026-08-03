@@ -4,8 +4,10 @@ Convert a canonical COCO dataset into Ultralytics YOLO format.
 
 This is a generic bridge: it works for any dataset already in the
 canonical COCO split layout produced by a ``detectionbench.datasets``
-adapter (via ``detectionbench-prepare``) or by ``convert_yolo_to_coco.py``.
-It has no dataset-specific logic.
+adapter (via ``detectionbench-prepare-coco``) or by
+``detectionbench-convert-yolo-to-coco``. It has no dataset-specific logic,
+so it deliberately takes no ``--dataset`` flag -- just an input/output
+directory pair, shared with its reverse-direction sibling.
 
 Input directory layout expected (canonical COCO layout):
   input_dir/
@@ -32,12 +34,13 @@ Output directory layout produced:
   └── data.yaml   (Ultralytics dataset config; nc + class names from COCO categories)
 
 Usage:
-  python -m detectionbench.utils.convert_to_yolo \\
-      /path/to/coco_dataset /path/to/yolo_dataset
+  python -m detectionbench.utils.convert_coco_to_yolo \\
+      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset
 
   # Copy image bytes instead of symlinking (e.g. across filesystems)
-  python -m detectionbench.utils.convert_to_yolo \\
-      /path/to/coco_dataset /path/to/yolo_dataset --copy-images
+  python -m detectionbench.utils.convert_coco_to_yolo \\
+      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \\
+      --copy-images
 """
 
 from __future__ import annotations
@@ -62,10 +65,11 @@ def parse_args() -> argparse.Namespace:
         epilog=__doc__,
     )
     parser.add_argument(
-        "input_dir",
+        "--input-dir",
+        required=True,
         help="Canonical COCO dataset root (contains train/, valid/, test/)",
     )
-    parser.add_argument("output_dir", help="Output YOLO dataset root")
+    parser.add_argument("--output-dir", required=True, help="Output YOLO dataset root")
     parser.add_argument(
         "--copy-images",
         action="store_true",

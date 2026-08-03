@@ -15,7 +15,7 @@ training:
   dataset_dir: ${dataset.dataset_dir} # Root dir with train/valid/test and _annotations.coco.json files
   dataset_file: "roboflow" # Supports the requested train/valid/test COCO-style layout
   output_dir: "experiments/${dataset.name}/${model.name}" # Base directory for RF-DETR artifacts
-  epochs: 500
+  epochs: 300
   batch_size: 4 # Integer or "auto"
   grad_accum_steps: 4
   learning_rate: 0.0001
@@ -30,7 +30,7 @@ training:
   tensorboard: true
   wandb: false
   early_stopping: true
-  early_stopping_patience: 100
+  early_stopping_patience: 50
   early_stopping_min_delta: 0.001
   progress_bar: "rich" # rich, tqdm, or null
   augmentation_backend: "gpu" # cpu, auto, gpu

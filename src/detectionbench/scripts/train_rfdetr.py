@@ -1,4 +1,11 @@
-"""Train RF-DETR models using Hydra configuration."""
+"""
+Train RF-DETR models using Hydra configuration.
+
+Not a console-script entrypoint itself -- reached via `detectionbench-train`,
+which dispatches here or to `train_yolo.py` based on `model.name=...` (see
+`train.py`, the dispatcher). Still directly runnable via
+`python -m detectionbench.scripts.train_rfdetr` if ever needed.
+"""
 
 from __future__ import annotations
 

@@ -30,12 +30,15 @@ Output directory layout produced:
       └── ...
 
 This is a generic bridge: it works for any YOLO-format dataset, regardless
-of which detection dataset it came from.
+of which detection dataset it came from. It has no dataset-specific logic,
+so it deliberately takes no ``--dataset`` flag -- just an input/output
+directory pair, shared with its reverse-direction sibling,
+``detectionbench-convert-coco-to-yolo``.
 
 Usage:
   python -m detectionbench.utils.convert_yolo_to_coco \
-      /path/to/yolo_dataset \
-      /path/to/coco_dataset \
+      --input-dir /path/to/yolo_dataset \
+      --output-dir /path/to/coco_dataset \
       --dataset-yaml /path/to/yolo_dataset/dataset.yaml
 """
 
@@ -101,8 +104,8 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("input_dir", help="YOLO dataset root")
-    parser.add_argument("output_dir", help="Output COCO dataset root")
+    parser.add_argument("--input-dir", required=True, help="YOLO dataset root")
+    parser.add_argument("--output-dir", required=True, help="Output COCO dataset root")
     parser.add_argument(
         "--dataset-yaml",
         default=None,

@@ -3,8 +3,8 @@
 #
 # `dataset_yaml` / `dataset_dir` point at YOUR locally converted data.
 # Regenerate them for a new machine with:
-#   detectionbench-prepare --dataset doclaynet --raw-dir <raw> --output-dir <coco_out>
-#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+#   detectionbench-prepare-coco --dataset doclaynet --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
 
 name: doclaynet
 dataset_yaml: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset/data.yaml

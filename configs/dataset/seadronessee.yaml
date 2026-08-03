@@ -3,8 +3,8 @@
 #
 # Converted from the raw "CompressedVersion" release
 # (images/{train,val,test} + annotations/instances_{train,val}.json) via:
-#   detectionbench-prepare --dataset seadronessee --raw-dir <raw> --output-dir <coco_out>
-#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+#   detectionbench-prepare-coco --dataset seadronessee --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
 #
 # NOTE: there is no public test-set annotation file (images/test/ is a
 # held-out competition set) -- eval_split is "valid", not "test", for this

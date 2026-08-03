@@ -91,16 +91,14 @@ all = [
 
 [project.scripts]
 detectionbench-train = "detectionbench.scripts.train:main"
-detectionbench-train-rfdetr = "detectionbench.scripts.train_rfdetr:main"
 detectionbench-evaluate = "detectionbench.scripts.evaluate:main"
-detectionbench-evaluate-rfdetr = "detectionbench.scripts.evaluate_rfdetr:main"
 detectionbench-infer = "detectionbench.scripts.inference:main"
 detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
-detectionbench-prepare = "detectionbench.scripts.prepare_dataset:main"
+detectionbench-prepare-coco = "detectionbench.scripts.prepare_coco:main"
 detectionbench-dataset-banner = "detectionbench.scripts.dataset_banner:main"
 detectionbench-repo-showcase = "detectionbench.scripts.repo_showcase:main"
 detectionbench-generate-model-cards = "detectionbench.scripts.generate_model_cards:main"
-detectionbench-convert-yolo = "detectionbench.utils.convert_to_yolo:main"
+detectionbench-convert-coco-to-yolo = "detectionbench.utils.convert_coco_to_yolo:main"
 detectionbench-convert-yolo-to-coco = "detectionbench.utils.convert_yolo_to_coco:main"
 
 [tool.setuptools]

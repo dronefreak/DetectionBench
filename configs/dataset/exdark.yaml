@@ -9,7 +9,7 @@
 #
 # `dataset_dir` (canonical COCO root, for RF-DETR) is not generated yet.
 # Create it with:
-#   detectionbench-convert-yolo-to-coco <yolo_dir> <coco_out> --dataset-yaml <yolo_dir>/detectionbench_data.yaml
+#   detectionbench-convert-yolo-to-coco --input-dir <yolo_dir> --output-dir <coco_out> --dataset-yaml <yolo_dir>/detectionbench_data.yaml
 
 name: exdark
 dataset_yaml: /home/neural_debugger/Downloads/datasets/ExDark/Exclusively-Dark-Image.v2i.yolo26/detectionbench_data.yaml

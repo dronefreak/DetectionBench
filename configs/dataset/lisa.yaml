@@ -9,7 +9,7 @@
 #
 # `dataset_dir` (canonical COCO root, for RF-DETR) was generated directly
 # from the `box` YOLO variant via:
-#   detectionbench-convert-yolo-to-coco "<box_dir>" <coco_out> --dataset-yaml "<box_dir>/detectionbench_data.yaml"
+#   detectionbench-convert-yolo-to-coco --input-dir "<box_dir>" --output-dir <coco_out> --dataset-yaml "<box_dir>/detectionbench_data.yaml"
 # Its annotation counts (train 44657, valid 7169, test 57649) match the
 # pre-existing `coco_rfdetr/` sibling of `yolo/` and the companion
 # project's own reported counts -- confirmed consistent, not a stale copy.

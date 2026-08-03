@@ -1,115 +1,55 @@
-"""
-Train a YOLO model on the configured dataset.
+r"""
+Unified `detectionbench-train` entrypoint.
 
-Runs evaluation afterward.
+Dispatches to the Ultralytics (YOLO/RT-DETR) or RF-DETR trainer based on the
+`model.name=...` (or `model=...`) Hydra override on the command line, so
+callers only ever need one command regardless of model family -- adding a
+new Ultralytics-registered checkpoint name (or a new RF-DETR size) never
+needs a new entrypoint.
+
+This has to be a thin argv-peeking dispatcher rather than a single
+`@hydra.main`-decorated function: the Ultralytics and RF-DETR training
+paths use genuinely different Hydra config schemas (`configs/config.yaml`
+vs `configs/rfdetr.yaml` -- different `training`/`evaluation` trees
+entirely), and Hydra's `config_name` is fixed at decoration time. This
+module decides which schema applies by scanning `sys.argv` for a
+`model.name=`/`model=` override *before* either underlying `@hydra.main`
+function runs its own parsing -- it never touches Hydra itself.
+
+Usage:
+  detectionbench-train dataset=doclaynet model.name=yolov8n
+  detectionbench-train dataset=doclaynet model.name=rfdetr-nano
 """
 
 from __future__ import annotations
 
-import json
-import os
-import random
-from pathlib import Path
-from typing import Any
+import re
+import sys
 
-import hydra
-import numpy as np
-import torch
-from omegaconf import DictConfig, OmegaConf
-
-from detectionbench.datasets import get_spec
-from detectionbench.scripts.evaluate import (
-    EvaluationOptions,
-    evaluate_yolo,
-    print_metrics_table,
-)
-from detectionbench.utils.trainer import YOLOTrainer
-from detectionbench.utils.utils import RichConsoleManager
-
-CONFIGS_DIR = Path(__file__).resolve().parents[3] / "configs"
+_MODEL_OVERRIDE_PATTERN = re.compile(r"^model(?:\.name)?=(.+)$")
 
 
-def seed_everything(seed: int) -> None:
-    """Seed supported random number generators for reproducible runs."""
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False  # Must be False when deterministic=True
-
-
-@hydra.main(version_base=None, config_path=str(CONFIGS_DIR), config_name="config")
-def train_and_evaluate(cfg: DictConfig) -> None:
-    """Train the configured YOLO model and evaluate the best checkpoint."""
-    console = RichConsoleManager.get_console()
-    console.print(OmegaConf.to_yaml(cfg), style="warning")
-    trainer = YOLOTrainer(
-        model_name=cfg.model.name,
-        num_classes=cfg.model.num_classes,
-        device=cfg.training.device,
-    )
-    results = trainer.train(
-        dataset_yaml=cfg.training.dataset_yaml,
-        epochs=cfg.training.epochs,
-        batch_size=cfg.training.batch_size,
-        lr=cfg.training.learning_rate,
-        imgsz=cfg.training.imgsz,
-        use_amp=cfg.training.use_amp,
-        output_dir=cfg.training.output_dir,
-        workers=cfg.training.workers,
-        patience=cfg.training.patience,
-        augment=cfg.training.use_augmentation,
-    )
-    if not results["model_path"]:
-        raise RuntimeError("Training completed without producing a model checkpoint.")
-
-    console.print(f"  Best model saved to: {results['model_path']}")
-    console.print(f"  All artifacts saved to: {results['output_dir']}")
-
-    console.print(
-        f"\n[bold cyan]Evaluating the trained model on the "
-        f"'{cfg.evaluation.split}' split...[/bold cyan]"
-    )
-    spec = get_spec(cfg.dataset.name)
-    metrics = evaluate_yolo(
-        EvaluationOptions(
-            checkpoint_path=results["model_path"],
-            dataset_yaml=cfg.evaluation.dataset_yaml,
-            class_names=spec.classes,
-            num_classes=cfg.evaluation.num_classes,
-            device=cfg.evaluation.device,
-            output_dir=Path(cfg.evaluation.output_dir),
-            save_predictions=cfg.evaluation.save_predictions,
-            split=cfg.evaluation.split,
-        )
-    )
-    console.print("\n[bold green]Evaluation metrics:[/bold green]")
-
-    print_metrics_table(cfg.model, metrics)
-
-    # Save JSON summary
-    metrics_path = Path(cfg.evaluation.output_dir) / "metrics.json"
-    serializable: dict[str, Any] = {
-        k: (float(v) if isinstance(v, (float, np.floating)) else v)
-        for k, v in metrics.items()
-        if k != "per_class"
-    }
-    if "per_class" in metrics:
-        serializable["per_class"] = {
-            cls: {mk: float(mv) for mk, mv in mv_dict.items()}
-            for cls, mv_dict in metrics["per_class"].items()
-        }
-    with open(metrics_path, "w") as f:
-        json.dump(serializable, f, indent=2)
-    console.print(f"\n✓ Metrics saved to [bold]{metrics_path}[/bold]")
+def _peek_model_name(argv: list[str]) -> str:
+    """Scan CLI args for a `model.name=...`/`model=...` override, unparsed by Hydra."""
+    for arg in argv:
+        match = _MODEL_OVERRIDE_PATTERN.match(arg)
+        if match:
+            return match.group(1)
+    return ""
 
 
 def main() -> None:
-    """Run the training CLI entrypoint."""
-    seed_everything(42)  # Set a fixed seed for reproducibility
-    train_and_evaluate()
+    """Dispatch `detectionbench-train` to the Ultralytics or RF-DETR trainer."""
+    model_name = _peek_model_name(sys.argv[1:]).lower()
+
+    if model_name.startswith(("yolo", "rtdetr")) or not model_name:
+        from detectionbench.scripts.train_yolo import main as yolo_main
+
+        yolo_main()
+    else:
+        from detectionbench.scripts.train_rfdetr import main as rfdetr_main
+
+        rfdetr_main()
 
 
 if __name__ == "__main__":

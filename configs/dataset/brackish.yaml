@@ -9,7 +9,7 @@
 #
 # `dataset_dir` (canonical COCO root, for RF-DETR) is not generated yet.
 # Create it with:
-#   detectionbench-convert-yolo-to-coco "<yolo_dir>" <coco_out> --dataset-yaml "<yolo_dir>/detectionbench_data.yaml"
+#   detectionbench-convert-yolo-to-coco --input-dir "<yolo_dir>" --output-dir <coco_out> --dataset-yaml "<yolo_dir>/detectionbench_data.yaml"
 #
 # NOTE: ~15% of images have no annotations (background-only frames); this
 # is expected for Brackish, unlike ExDark where every image has >=1 box.

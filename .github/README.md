@@ -7,7 +7,7 @@
 <!-- ROW 1: Core Identity (What this project is) -->
 <div style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
   <!-- Project Identity -->
-  <img src="https://img.shields.io/badge/Datasets-6%20working-0aa1a7?style=flat-square" alt="Datasets">
+  <img src="https://img.shields.io/badge/Datasets-7%20working-0aa1a7?style=flat-square" alt="Datasets">
 
   <!-- Tech Stack & Quality -->
   <a href="https://www.python.org/downloads/">
@@ -46,9 +46,11 @@ DetectionBench wraps two model families behind one CLI, trained and evaluated wi
 | --- | --- | --- | --- |
 | **YOLO** | Ultralytics | `yolov8n/s/m`, `yolov9c/e`, `yolo11n/s/m`, ... | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 | **RT-DETR** | Ultralytics | `rtdetr-l`, `rtdetr-x` | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
-| **RF-DETR** | Roboflow `rfdetr` | `rfdetr-nano`, `rfdetr-small`, `rfdetr-medium`, `rfdetr-large` | `detectionbench-train-rfdetr`, `detectionbench-evaluate-rfdetr` |
+| **RF-DETR** | Roboflow `rfdetr` | `rfdetr-nano`, `rfdetr-small`, `rfdetr-medium`, `rfdetr-large` | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 
-Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box — the YOLO family isn't a fixed enum, `YOLOTrainer` just passes the name straight through to Ultralytics. Every model, regardless of family, gets hardware profiling (latency, FPS, VRAM, parameters, FLOPs) via `detectionbench-benchmark` and per-class evaluation metrics via `detectionbench-evaluate` / `detectionbench-evaluate-rfdetr`.
+Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box — the YOLO family isn't a fixed enum, `YOLOTrainer` just passes the name straight through to Ultralytics. Every model, regardless of family, gets hardware profiling (latency, FPS, VRAM, parameters, FLOPs) via `detectionbench-benchmark` and per-class evaluation metrics via `detectionbench-evaluate`.
+
+`detectionbench-train` and `detectionbench-evaluate` are each one command for every model family: both inspect `model.name=...` / `--model` and dispatch to the Ultralytics or RF-DETR implementation automatically, so adding a new checkpoint name (or a new RF-DETR size) never needs a new entrypoint.
 
 ## Supported Datasets
 
@@ -60,9 +62,11 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 | **SeaDronesSee** | Object Detection / Tracking | Maritime UAV / Search & Rescue | 5 | 10,477 [^2] | CC0-1.0 | [Dataset Card](../dataset_cards/seadronessee/README.md) |
 | **Brackish Underwater** | Object Detection | Marine Animal Detection | 6 | 14,674 | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/Brackish) |
 | **LISA Traffic Lights** | Object Detection | Autonomous Driving | 7 | 43,017 | CC BY-NC-SA 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights) |
+| **VisDrone-DET** | Object Detection | Aerial / UAV Surveillance | 11 | 8,629 [^3] | CC BY-NC-SA 3.0 | [Hugging Face](https://huggingface.co/datasets/Voxel51/VisDrone2019-DET) |
 
 [^1]: BSD-3-Clause is the license text itself; the original authors separately request non-commercial use. See the dataset card for compliance details.
 [^2]: No public test-set labels are available for this dataset; this count reflects train and validation splits only.
+[^3]: Train + val + test-dev splits only (6,471 + 548 + 1,610); the official test-challenge split (1,580 images) has no public ground truth.
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
@@ -80,17 +84,20 @@ pip install -e ".[benchmark]"    # + hardware-profiling extras (psutil, thop, fv
 
 ```bash
 # 1. Convert a raw dataset download into the canonical COCO layout
-detectionbench-prepare --dataset doclaynet --raw-dir /path/to/DocLayNet_core --output-dir /path/to/doclaynet_coco
+detectionbench-prepare-coco --dataset doclaynet --raw-dir /path/to/DocLayNet_core --output-dir /path/to/doclaynet_coco
 
 # 2. Bridge into Ultralytics YOLO format (for YOLO/RT-DETR training)
-detectionbench-convert-yolo /path/to/doclaynet_coco /path/to/doclaynet_yolo
+detectionbench-convert-coco-to-yolo --input-dir /path/to/doclaynet_coco --output-dir /path/to/doclaynet_yolo
 
-# 3. Train + evaluate (Hydra config group `dataset=<key>` selects the dataset)
+# 3. Train + evaluate (Hydra config group `dataset=<key>` selects the dataset;
+#    one entrypoint for every model family, dispatched by `model.name=`)
 detectionbench-train dataset=doclaynet model.name=yolov8n
-detectionbench-train-rfdetr dataset=doclaynet model.name=rfdetr-nano
+detectionbench-train dataset=doclaynet model.name=rfdetr-nano
 
-# 4. Evaluate / infer / benchmark a checkpoint directly
-detectionbench-evaluate --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet --dataset-yaml /path/to/doclaynet_yolo/data.yaml
+# 4. Evaluate / infer / benchmark a checkpoint directly (--dataset-yaml is
+#    optional -- it auto-resolves from configs/dataset/<key>.yaml if omitted;
+#    the same command works unchanged for model=rfdetr-nano)
+detectionbench-evaluate --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet
 detectionbench-infer --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet --input /path/to/images
 detectionbench-benchmark --model yolov8n --checkpoint experiments/yolov8n/weights/best.pt
 ```

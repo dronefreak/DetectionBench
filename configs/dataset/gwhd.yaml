@@ -3,8 +3,8 @@
 #
 # Converted from the raw GWHD 2021 competition release
 # (images/ + competition_{train,val,test}.csv) via:
-#   detectionbench-prepare --dataset gwhd --raw-dir <raw> --output-dir <coco_out>
-#   detectionbench-convert-yolo <coco_out> <yolo_out>   # writes <yolo_out>/data.yaml
+#   detectionbench-prepare-coco --dataset gwhd --raw-dir <raw> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
 
 name: gwhd
 dataset_yaml: /home/neural_debugger/Downloads/datasets/GWHD/gwhd_2021/yolo_dataset/data.yaml

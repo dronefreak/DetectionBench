@@ -5,12 +5,17 @@ Prepare a raw dataset download into the canonical COCO layout.
 Dispatches to the registered ``detectionbench.datasets`` adapter for the
 requested dataset, which knows how to translate that dataset's raw format
 into ``output_dir/{train,valid,test}/_annotations.coco.json`` (+ images).
-From there, use ``detectionbench.utils.convert_to_yolo`` to bridge into
+From there, use ``detectionbench-convert-coco-to-yolo`` to bridge into
 YOLO format for Ultralytics models, or train/evaluate RF-DETR directly
 against the canonical COCO output.
 
+This is the "prepare" family's COCO-output member (console script:
+``detectionbench-prepare-coco``) -- a future non-COCO target (e.g. VOC)
+would be a sibling ``detectionbench-prepare-voc`` sharing the same
+``--dataset``/``--raw-dir``/``--output-dir`` interface.
+
 Usage:
-  python -m detectionbench.scripts.prepare_dataset \\
+  python -m detectionbench.scripts.prepare_coco \\
       --dataset doclaynet \\
       --raw-dir /path/to/DocLayNet_core \\
       --output-dir /path/to/doclaynet_coco

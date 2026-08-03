@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from detectionbench.utils.convert_to_yolo import convert, convert_split
+from detectionbench.utils.convert_coco_to_yolo import convert, convert_split
 
 
 def _write_canonical_split(split_dir: Path) -> None:

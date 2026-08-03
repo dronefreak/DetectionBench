@@ -7,6 +7,7 @@ from detectionbench.datasets import (  # noqa: F401
     gwhd,
     lisa,
     seadronessee,
+    visdrone,
 )
 from detectionbench.datasets.registry import get, get_spec, list_datasets
 

@@ -1,4 +1,15 @@
-"""Evaluate RF-DETR checkpoints on a canonical COCO-format dataset split."""
+"""
+Evaluate RF-DETR checkpoints on a canonical COCO-format dataset split.
+
+Not a console-script entrypoint itself -- reached via `detectionbench-evaluate`,
+which dispatches here or to `evaluate_yolo.py` based on `--model` (see
+`evaluate.py`, the dispatcher, which builds an equivalent Hydra config and
+calls `evaluate_rfdetr()` directly). Still directly runnable via
+`python -m detectionbench.scripts.evaluate_rfdetr` (Hydra overrides) for the
+RF-DETR-specific tuning knobs (`evaluation.compile_inference`,
+`evaluation.inference_dtype`, GPU-cleanup flags, ...) the unified dispatcher
+doesn't expose.
+"""
 
 from __future__ import annotations
 
