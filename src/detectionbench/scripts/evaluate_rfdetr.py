@@ -173,6 +173,14 @@ def print_metrics_table(class_names: dict[int, str], metrics: dict[str, Any]) ->
     summary.add_row("mAP@0.5:0.95", f"{metrics['map50_95']:.4f}")
     summary.add_row("mAP@0.5", f"{metrics['map50']:.4f}")
     summary.add_row("mAP@0.75", f"{metrics['map75']:.4f}")
+    if "precision" in metrics:
+        summary.add_row("Precision@0.5", f"{metrics['precision']:.4f}")
+    if "recall" in metrics:
+        summary.add_row("Recall@0.5", f"{metrics['recall']:.4f}")
+    if "pr_confidence_threshold" in metrics:
+        summary.add_row(
+            "P/R confidence threshold", f"{metrics['pr_confidence_threshold']:.2f}"
+        )
     console.print(summary, style="bold green")
 
     if metrics["ap_per_class"]:
@@ -195,6 +203,61 @@ def print_metrics_table(class_names: dict[int, str], metrics: dict[str, Any]) ->
         console.print(per_class, style="bold green")
 
 
+PR_CONFIDENCE_THRESHOLDS: tuple[float, ...] = tuple(
+    round(float(t), 2) for t in np.arange(0.05, 1.0, 0.05)
+)
+
+
+def pick_best_f1_operating_point(
+    all_predictions: list[Any],
+    all_targets: list[Any],
+    thresholds: tuple[float, ...] = PR_CONFIDENCE_THRESHOLDS,
+) -> tuple[float, Any, Any]:
+    """
+    Sweep confidence thresholds and return the one maximizing weighted F1 @ IoU=0.5.
+
+    RF-DETR emits a fixed number of object-query predictions per image (300
+    for rfdetr-nano) regardless of image content, so the `score_threshold=0.0`
+    detection set required for a correct mAP curve is useless as a single
+    precision/recall operating point: ~300 near-zero-confidence "detections"
+    per image swamp precision against a handful of real ground-truth boxes
+    (empirically: Precision@0.5 ~1% against Recall@0.5 ~69% on one run, a
+    dead giveaway something's mis-thresholded, not a real result). mAP is
+    unaffected since it integrates over the whole confidence-ranked curve.
+
+    Ultralytics' own validator solves the equivalent problem by picking the
+    confidence threshold that maximizes F1 on the validation set; this
+    mirrors that, since Supervision's Precision/Recall/F1Score classes only
+    evaluate whichever fixed-threshold detection set they're given -- they
+    don't sweep thresholds themselves. Returns (threshold, PrecisionResult,
+    RecallResult) for the winning threshold.
+    """
+    from supervision.metrics import Precision, Recall
+
+    best_f1 = -1.0
+    best: tuple[float, Any, Any] = (thresholds[0], None, None)
+    for threshold in thresholds:
+        precision_metric = Precision()
+        recall_metric = Recall()
+        for predictions, targets in zip(all_predictions, all_targets):
+            kept = predictions[predictions.confidence >= threshold]
+            precision_metric.update(kept, targets)
+            recall_metric.update(kept, targets)
+        precision_result = precision_metric.compute()
+        recall_result = recall_metric.compute()
+        precision_at_50 = precision_result.precision_at_50
+        recall_at_50 = recall_result.recall_at_50
+        f1 = (
+            2 * precision_at_50 * recall_at_50 / (precision_at_50 + recall_at_50)
+            if (precision_at_50 + recall_at_50) > 0
+            else 0.0
+        )
+        if f1 > best_f1:
+            best_f1 = f1
+            best = (threshold, precision_result, recall_result)
+    return best
+
+
 def resolve_inference_dtype(dtype_name: str) -> torch.dtype:
     """Resolve a config dtype string into a torch dtype."""
     normalized = dtype_name.strip().lower()
@@ -207,7 +270,7 @@ def resolve_inference_dtype(dtype_name: str) -> torch.dtype:
     return INFERENCE_DTYPE_MAP[normalized]
 
 
-def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:
+def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:  # noqa: PLR0915
     """Evaluate an RF-DETR checkpoint on the configured dataset split."""
     try:
         from supervision.metrics import MeanAveragePrecision
@@ -243,6 +306,8 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:
         dataset_dir, str(cfg.evaluation.split)
     )
     map_metric = MeanAveragePrecision()
+    all_predictions: list[Any] = []
+    all_targets: list[Any] = []
 
     console.print(
         f"[bold cyan]Evaluating {normalize_model_name(str(cfg.model.name))} on "
@@ -269,10 +334,25 @@ def evaluate_rfdetr(cfg: DictConfig) -> dict[str, Any]:
                 include_source_image=False,
             )
             map_metric.update(detections, annotations)
+            all_predictions.append(detections)
+            all_targets.append(annotations)
             progress.advance(task_id)
 
     result = map_metric.compute()
+    # Precision/recall need a real confidence cutoff, unlike mAP -- see
+    # pick_best_f1_operating_point's docstring for why the threshold=0.0
+    # detection set above can't be reused directly (RF-DETR's fixed
+    # per-image query count swamps precision with near-zero-confidence
+    # "detections"). This is the counterpart to Ultralytics'
+    # `metrics/precision(B)`/`recall(B)`, so RF-DETR model cards stop
+    # reporting these as "N/A" (see ROADMAP.md Phase 1).
+    pr_threshold, precision_result, recall_result = pick_best_f1_operating_point(
+        all_predictions, all_targets
+    )
     metrics = serialize_metric_result(result)
+    metrics["precision"] = float(precision_result.precision_at_50)
+    metrics["recall"] = float(recall_result.recall_at_50)
+    metrics["pr_confidence_threshold"] = pr_threshold
     metrics["split"] = str(cfg.evaluation.split)
     metrics["num_images"] = len(dataset)
     metrics["score_threshold"] = float(cfg.evaluation.score_threshold)
