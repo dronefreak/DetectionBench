@@ -70,6 +70,43 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
+<!-- LEADERBOARD:START -->
+## Leaderboards
+
+Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) only -- the same models across every dataset, for a fair comparison. Every trained model (shortlist and extras) gets its own full HF model card with its own complete leaderboard; this table is the smaller, cross-dataset-comparable summary.
+
+### ExDark
+
+| Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | RF-DETR Small | 88.98 | 61.67 | 83.07 | 81.89 | [dronefreak/exdark-rfdetr-small](https://huggingface.co/dronefreak/exdark-rfdetr-small) |
+| 2 | RF-DETR Medium | 88.64 | 62.55 | 86.6 | 79.46 | [dronefreak/exdark-rfdetr-medium](https://huggingface.co/dronefreak/exdark-rfdetr-medium) |
+| 3 | RF-DETR Nano | 85.27 | 58.01 | 85.18 | 74.67 | [dronefreak/exdark-rfdetr-nano](https://huggingface.co/dronefreak/exdark-rfdetr-nano) |
+| 4 | YOLOv26m | 76.54 | 50.02 | 82.29 | 68.83 | [dronefreak/exdark-yolo26m](https://huggingface.co/dronefreak/exdark-yolo26m) |
+| 5 | YOLOv8m | 74.69 | 48.05 | 78.4 | 69.17 | [dronefreak/exdark-yolov8m](https://huggingface.co/dronefreak/exdark-yolov8m) |
+| 6 | YOLOv11x | 74.41 | 48.98 | 81.87 | 67.05 | [dronefreak/exdark-yolo11x](https://huggingface.co/dronefreak/exdark-yolo11x) |
+| 7 | YOLOv26s | 74.0 | 48.32 | 79.11 | 65.59 | [dronefreak/exdark-yolo26s](https://huggingface.co/dronefreak/exdark-yolo26s) |
+| 8 | YOLOv8s | 73.01 | 45.85 | 78.26 | 65.13 | [dronefreak/exdark-yolov8s](https://huggingface.co/dronefreak/exdark-yolov8s) |
+| 9 | YOLOv11n | 70.36 | 44.72 | 76.18 | 61.15 | [dronefreak/exdark-yolo11n](https://huggingface.co/dronefreak/exdark-yolo11n) |
+
+### LISA Traffic Lights
+
+| Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | YOLOv26m | 29.08 | 13.68 | 43.79 | 29.71 | [dronefreak/lisa-yolo26m](https://huggingface.co/dronefreak/lisa-yolo26m) |
+| 2 | RF-DETR Nano | 27.47 | 12.16 | 74.96 | 52.57 | [dronefreak/lisa-rfdetr-nano](https://huggingface.co/dronefreak/lisa-rfdetr-nano) |
+| 3 | YOLOv26s | 26.91 | 12.82 | 42.47 | 26.43 | [dronefreak/lisa-yolo26s](https://huggingface.co/dronefreak/lisa-yolo26s) |
+| 4 | YOLOv11x | 26.4 | 13.09 | 53.98 | 24.38 | [dronefreak/lisa-yolo11x](https://huggingface.co/dronefreak/lisa-yolo11x) |
+| 5 | YOLOv8m | 25.07 | 11.91 | 38.16 | 25.15 | [dronefreak/lisa-yolov8m](https://huggingface.co/dronefreak/lisa-yolov8m) |
+
+### SeaDronesSee
+
+| Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | YOLOv8s | 72.94 | 43.05 | 84.52 | 71.25 | [dronefreak/seadronessee-yolov8s](https://huggingface.co/dronefreak/seadronessee-yolov8s) |
+| 2 | YOLOv11n | 69.93 | 40.41 | 82.87 | 69.04 | [dronefreak/seadronessee-yolo11n](https://huggingface.co/dronefreak/seadronessee-yolo11n) |
+<!-- LEADERBOARD:END -->
+
 ## Installation
 
 ```bash

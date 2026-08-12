@@ -85,8 +85,18 @@ benchmark = [
     "torchinfo>=1.8.0",
     "nvidia-ml-py>=12.0.0",
 ]
+onnx = [
+    "onnx>=1.15.0",
+    "onnxruntime>=1.17.0",
+    # onnxslim: Ultralytics' own simplifier (export.simplify). onnxsim +
+    # onnx-graphsurgeon: RF-DETR's exporter needs both (see
+    # rfdetr/export/_onnx/exporter.py) -- distinct from onnxslim, not a dup.
+    "onnxslim>=0.1.71",
+    "onnxsim>=0.4.33",
+    "onnx-graphsurgeon>=0.5.2",
+]
 all = [
-    "detectionbench[dev,coco,rfdetr,benchmark]",
+    "detectionbench[dev,coco,rfdetr,benchmark,onnx]",
 ]
 
 [project.scripts]
@@ -94,10 +104,12 @@ detectionbench-train = "detectionbench.scripts.train:main"
 detectionbench-evaluate = "detectionbench.scripts.evaluate:main"
 detectionbench-infer = "detectionbench.scripts.inference:main"
 detectionbench-benchmark = "detectionbench.scripts.benchmark:main"
+detectionbench-export-onnx = "detectionbench.scripts.export_onnx:main"
 detectionbench-prepare-coco = "detectionbench.scripts.prepare_coco:main"
 detectionbench-dataset-banner = "detectionbench.scripts.dataset_banner:main"
 detectionbench-repo-showcase = "detectionbench.scripts.repo_showcase:main"
 detectionbench-generate-model-cards = "detectionbench.scripts.generate_model_cards:main"
+detectionbench-generate-readme-leaderboard = "detectionbench.scripts.generate_readme_leaderboard:main"
 detectionbench-convert-coco-to-yolo = "detectionbench.utils.convert_coco_to_yolo:main"
 detectionbench-convert-yolo-to-coco = "detectionbench.utils.convert_yolo_to_coco:main"
 

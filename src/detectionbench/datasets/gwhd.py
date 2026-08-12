@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +30,7 @@ from detectionbench.datasets.base import (
     COCO_ANNOTATION_FILENAME,
     DatasetAdapter,
     DatasetSpec,
+    link_image,
 )
 from detectionbench.datasets.registry import register
 
@@ -98,8 +98,8 @@ def _convert_split(csv_path: Path, images_dir: Path, split_output_dir: Path) -> 
             file_name = _unique_output_name(source_name, seen_names)
             src = images_dir / source_name
             dst = split_output_dir / file_name
-            if not dst.exists() and src.exists():
-                os.symlink(src, dst)
+            if src.exists():
+                link_image(src, dst)
 
             width, height = _image_size(src)
             images.append(

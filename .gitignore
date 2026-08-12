@@ -228,12 +228,12 @@ experiments/
 *.trt
 
 # Template
-template/
+/template/
 
 # Datasets
-datasets/
-dataset_cards/
-model_cards/
+/datasets/
+/dataset_cards/
+/model_cards/
 
 # Banners
 banners/

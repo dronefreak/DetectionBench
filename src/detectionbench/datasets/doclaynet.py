@@ -10,7 +10,6 @@ remapping category ids to a contiguous 0-indexed range along the way.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +17,7 @@ from detectionbench.datasets.base import (
     COCO_ANNOTATION_FILENAME,
     DatasetAdapter,
     DatasetSpec,
+    link_image,
 )
 from detectionbench.datasets.registry import register
 
@@ -98,8 +98,8 @@ def _convert_split(json_path: Path, png_dir: Path, split_output_dir: Path) -> No
     for image in data["images"]:
         src = png_dir / image["file_name"]
         dst = split_output_dir / image["file_name"]
-        if not dst.exists() and src.exists():
-            os.symlink(src, dst)
+        if src.exists():
+            link_image(src, dst)
         images.append(image)
 
     annotations = [
