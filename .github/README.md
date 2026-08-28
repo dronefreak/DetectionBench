@@ -88,9 +88,10 @@ then point `dataset_dir` in `configs/dataset/<key>.yaml` at the `--output-dir`. 
 <!-- LEADERBOARD:START -->
 ## Leaderboards
 
-Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) only -- the same models across every dataset, for a fair comparison. Every trained model (shortlist and extras) gets its own full HF model card with its own complete leaderboard; this table is the smaller, cross-dataset-comparable summary.
+Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) only -- the same models across every dataset, for a fair comparison. Every trained model (shortlist and extras) gets its own full HF model card with its own complete leaderboard; this table is the smaller, cross-dataset-comparable summary. Click a dataset to expand its table.
 
-### Brackish Underwater
+<details>
+<summary><b>Brackish Underwater</b> &mdash; top: YOLOv8s (mAP@50 99.3)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -101,7 +102,10 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 5 | YOLOv11n | 98.87 | 83.27 | 98.76 | 96.69 | [dronefreak/brackish-yolo11n](https://huggingface.co/dronefreak/brackish-yolo11n) |
 | 6 | YOLOv26m | 98.74 | 85.93 | 98.74 | 97.32 | [dronefreak/brackish-yolo26m](https://huggingface.co/dronefreak/brackish-yolo26m) |
 
-### ExDark
+</details>
+
+<details>
+<summary><b>ExDark</b> &mdash; top: RF-DETR Small (mAP@50 88.98)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -115,7 +119,10 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 8 | YOLOv8s | 73.01 | 45.85 | 78.26 | 65.13 | [dronefreak/exdark-yolov8s](https://huggingface.co/dronefreak/exdark-yolov8s) |
 | 9 | YOLOv11n | 70.36 | 44.72 | 76.18 | 61.15 | [dronefreak/exdark-yolo11n](https://huggingface.co/dronefreak/exdark-yolo11n) |
 
-### Global Wheat Head Dataset
+</details>
+
+<details>
+<summary><b>Global Wheat Head Dataset</b> &mdash; top: YOLOv11x (mAP@50 74.25)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -128,7 +135,10 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 7 | RF-DETR Small | 64.51 | 26.12 | 77.6 | 63.61 | [dronefreak/gwhd-rfdetr-small](https://huggingface.co/dronefreak/gwhd-rfdetr-small) |
 | 8 | RF-DETR Nano | 53.82 | 19.65 | 72.52 | 53.64 | [dronefreak/gwhd-rfdetr-nano](https://huggingface.co/dronefreak/gwhd-rfdetr-nano) |
 
-### LISA Traffic Lights
+</details>
+
+<details>
+<summary><b>LISA Traffic Lights</b> &mdash; top: RF-DETR Medium (mAP@50 33.01)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -140,7 +150,10 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 6 | YOLOv11x | 26.4 | 13.09 | 53.98 | 24.38 | [dronefreak/lisa-yolo11x](https://huggingface.co/dronefreak/lisa-yolo11x) |
 | 7 | YOLOv8m | 25.07 | 11.91 | 38.16 | 25.15 | [dronefreak/lisa-yolov8m](https://huggingface.co/dronefreak/lisa-yolov8m) |
 
-### SeaDronesSee
+</details>
+
+<details>
+<summary><b>SeaDronesSee</b> &mdash; top: RF-DETR Medium (mAP@50 83.47)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -154,7 +167,10 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 8 | YOLOv11n | 69.93 | 40.41 | 82.87 | 69.04 | [dronefreak/seadronessee-yolo11n](https://huggingface.co/dronefreak/seadronessee-yolo11n) |
 | 9 | YOLOv8m | 62.08 | 34.41 | 77.3 | 61.01 | [dronefreak/seadronessee-yolov8m](https://huggingface.co/dronefreak/seadronessee-yolov8m) |
 
-### VisDrone-DET
+</details>
+
+<details>
+<summary><b>VisDrone-DET</b> &mdash; top: YOLOv11x (external) (mAP@50 38.44)</summary>
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -169,6 +185,8 @@ Curated comparison across DetectionBench's [v1 model shortlist](../ROADMAP.md) o
 | 9 | RF-DETR Nano | 25.15 | 12.77 | 58.99 | 35.0 | [dronefreak/visdrone-rfdetr-nano](https://huggingface.co/dronefreak/visdrone-rfdetr-nano) |
 
 > Rows marked *(external)* were trained and evaluated on VisDrone-DET via a separate companion codebase ([VisDrone-dataset-python-toolkit](https://github.com/dronefreak/VisDrone-dataset-python-toolkit)), not reproduced inside DetectionBench -- included here purely for context, same shortlist checkpoint sizes as every other dataset's table. Unmarked rows are DetectionBench's own RF-DETR runs. See the [RF-DETR Small model card](https://huggingface.co/dronefreak/visdrone-rfdetr-small#external-visdrone-det-comparison) for the full 26-model external comparison.
+
+</details>
 <!-- LEADERBOARD:END -->
 
 ## Installation
