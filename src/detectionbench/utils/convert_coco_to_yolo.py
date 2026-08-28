@@ -166,8 +166,12 @@ def write_yaml(categories: list[dict[str, Any]], output_dir: Path) -> None:
 
 def convert(args: argparse.Namespace) -> None:
     """Convert every split found in the configured canonical COCO dataset into YOLO."""
-    input_dir = Path(args.input_dir)
-    output_dir = Path(args.output_dir)
+    # Resolve to absolute paths up front: the default (non---copy-images) path
+    # writes symlinks whose target is `input_dir/<split>/<file>`, and a
+    # relative target would be interpreted relative to the *link's* directory
+    # (output_dir/images/<split>/) and dangle. Mirrors convert_yolo_to_coco.py.
+    input_dir = Path(args.input_dir).resolve()
+    output_dir = Path(args.output_dir).resolve()
 
     output_dir.mkdir(parents=True, exist_ok=True)
     categories: list[dict[str, Any]] = []

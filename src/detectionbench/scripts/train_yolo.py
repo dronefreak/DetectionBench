@@ -9,14 +9,11 @@ based on `model.name=...` (see `train.py`, the dispatcher).
 from __future__ import annotations
 
 import json
-import os
-import random
 from pathlib import Path
 from typing import Any
 
 import hydra
 import numpy as np
-import torch
 from omegaconf import DictConfig, OmegaConf
 
 from detectionbench.datasets import get_spec
@@ -26,20 +23,9 @@ from detectionbench.scripts.evaluate_yolo import (
     print_metrics_table,
 )
 from detectionbench.utils.trainer import YOLOTrainer
-from detectionbench.utils.utils import RichConsoleManager
+from detectionbench.utils.utils import RichConsoleManager, seed_everything
 
 CONFIGS_DIR = Path(__file__).resolve().parents[3] / "configs"
-
-
-def seed_everything(seed: int) -> None:
-    """Seed supported random number generators for reproducible runs."""
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False  # Must be False when deterministic=True
 
 
 @hydra.main(version_base=None, config_path=str(CONFIGS_DIR), config_name="config")
@@ -52,6 +38,19 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         num_classes=cfg.model.num_classes,
         device=cfg.training.device,
     )
+
+    # The Ultralytics engine only offers linear (default) or cosine LR decay
+    # via the `cos_lr` bool -- step/exponential schedulers from config.yaml
+    # have no equivalent here.
+    scheduler_type = str(cfg.training.scheduler_type).lower()
+    cos_lr = bool(cfg.training.use_scheduler) and scheduler_type == "cosine"
+    if bool(cfg.training.use_scheduler) and scheduler_type not in ("cosine", "linear"):
+        console.print(
+            f"[bold yellow]training.scheduler_type='{cfg.training.scheduler_type}' "
+            "has no equivalent in the Ultralytics engine (only linear/cosine "
+            "are supported); falling back to linear decay.[/bold yellow]"
+        )
+
     results = trainer.train(
         dataset_yaml=cfg.training.dataset_yaml,
         epochs=cfg.training.epochs,
@@ -62,6 +61,8 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         output_dir=cfg.training.output_dir,
         workers=cfg.training.workers,
         patience=cfg.training.patience,
+        optimizer=cfg.training.optimizer,
+        cos_lr=cos_lr,
         augment=cfg.training.use_augmentation,
     )
     if not results["model_path"]:

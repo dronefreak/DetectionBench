@@ -4,8 +4,10 @@ Benchmark script for DetectionBench-registered object detection models.
 Measures and reports:
 - Parameter count and model file size (MB)
 - FLOPs / GFLOPs at the given input resolution
-- Latency statistics: mean, median, std, P95 (ms) — GPU-synced
-- Throughput: images/second
+- Latency statistics: mean, median, std, P95 (ms) — GPU-synced.
+  Model forward pass ONLY: no image pre-processing/decoding, no NMS or
+  other post-processing. Not an end-to-end inference latency.
+- Throughput: images/second (derived from the forward-pass latency above)
 - Peak GPU memory (VRAM) allocated and reserved (MB)
 - GPU utilisation % (NVIDIA only, via pynvml)
 - CPU RAM used by the process (MB, via psutil)
@@ -266,7 +268,9 @@ def _measure_latency(
 
     if use_cuda:
         torch.cuda.synchronize()
-        latencies_ms = [s.elapsed_time(e) for s, e in zip(start_evt, end_evt)]
+        latencies_ms = [
+            s.elapsed_time(e) for s, e in zip(start_evt, end_evt, strict=True)
+        ]
 
     arr = np.array(latencies_ms)
     return {
@@ -454,6 +458,10 @@ def print_benchmark_table(result: dict[str, Any]) -> None:
         "[bold]Throughput (FPS)[/bold]", f"[bold]{_fmt(result.get('fps'), 1)}[/bold]"
     )
     console.print(lat_table)
+    console.print(
+        "[dim]Latency/FPS above measure the model forward pass only "
+        "(no image pre-processing, decoding, or NMS/post-processing).[/dim]"
+    )
 
     # --- Memory ---
     mem_table = Table(
@@ -578,6 +586,12 @@ def main() -> None:
         result = _benchmark_ultralytics(args, handle)
     elif name.startswith("rfdetr"):
         result = _benchmark_rfdetr(args, handle)
+    else:
+        raise ValueError(
+            f"Unsupported model family '{args.model}'. Supported: Ultralytics "
+            "YOLO/RT-DETR models (name starting 'yolo'/'rtdetr'), or RF-DETR "
+            "(name starting 'rfdetr')."
+        )
 
     print_benchmark_table(result)
 

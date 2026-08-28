@@ -7,7 +7,7 @@ defaults:
 
 model:
   # Model parameters
-  name: "yolov5s" # Model architecture (e.g., "yolov8s", "yolov9m", "yolo11l", "yolo26x" etc.)
+  name: "yolov8n" # Model architecture (e.g., "yolov8s", "yolov9m", "yolo11l", "yolo26x" etc.)
   pretrained: true # Use pretrained weights for the model
   num_classes: ${dataset.num_classes} # Number of classes in the selected dataset
 
@@ -18,11 +18,9 @@ training:
   batch_size: 32 # Batch size for training
   learning_rate: 0.001 # Initial learning rate
   imgsz: 640 # Input image size (height and width)
-  optimizer: "adam" # Type of optimizer (e.g., "adam", "sgd")
-  use_scheduler: true # Use learning rate scheduler
-  scheduler_type: "cosine" # Type of learning rate scheduler (e.g., "step", "cosine", "exponential")
-  scheduler_step_size: 10 # Step size for step scheduler
-  scheduler_gamma: 0.1 # Gamma for step scheduler
+  optimizer: "adam" # Ultralytics optimizer: auto, SGD, Adam, AdamW, NAdam, RAdam, RMSProp (case-insensitive)
+  use_scheduler: true # Enable an explicit LR schedule (else Ultralytics' default linear decay)
+  scheduler_type: "cosine" # Only "linear" or "cosine" map to the Ultralytics engine (cos_lr); others warn + fall back to linear
   use_amp: true # Use Automatic Mixed Precision (AMP) for faster training and lower memory usage
   patience: 100 # Early stopping: epochs with no mAP improvement before stopping (Ultralytics native mechanism)
   output_dir: "experiments/${dataset.name}/${model.name}" # Directory to save model checkpoints and logs

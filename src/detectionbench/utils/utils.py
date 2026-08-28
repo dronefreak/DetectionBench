@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 import logging
+import os
 from pathlib import Path
 import sys
 import time
@@ -10,6 +11,33 @@ from typing import Dict, Optional, Union
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.theme import Theme
+
+
+def seed_everything(seed: int) -> None:
+    """
+    Seed Python, NumPy and torch RNGs for reproducible runs.
+
+    The single implementation shared by both training entrypoints (YOLO and
+    RF-DETR). torch/NumPy are imported lazily so this module stays importable
+    in torch-free environments (dataset conversion, CI). CUDA seeding is
+    guarded by ``torch.cuda.is_available()`` -- ``torch.cuda.manual_seed`` is
+    a documented no-op without CUDA, but the guard keeps intent explicit and
+    matches ``manual_seed_all`` for multi-GPU.
+    """
+    import random
+
+    import numpy as np
+    import torch
+
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False  # must be False when deterministic=True
 
 
 def setup_logger(logpth: str | Path) -> None:

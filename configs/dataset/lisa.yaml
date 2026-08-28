@@ -14,6 +14,15 @@
 # pre-existing `coco_rfdetr/` sibling of `yolo/` and the companion
 # project's own reported counts -- confirmed consistent, not a stale copy.
 
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! copies before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!       This is the format published on Hugging Face:
+# !!       https://huggingface.co/datasets/dronefreak/LISA-Traffic-Lights
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Not a download -- generate it locally from the
+# !!       YOLO copy with `detectionbench-convert-yolo-to-coco`.
 name: lisa
 dataset_yaml: "/home/neural_debugger/Downloads/datasets/LISa/data/LISA-Traffic-Lights/data/yolo/box/detectionbench_data.yaml"
 dataset_dir: "/home/neural_debugger/Downloads/datasets/LISa/yolo_dataset_coco"

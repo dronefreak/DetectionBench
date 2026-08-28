@@ -58,7 +58,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--checkpoint", required=True, help="Path to model checkpoint / .pt file"
     )
-    parser.add_argument("--model", default="yolov5s", help="Model name")
+    parser.add_argument("--model", default="yolov8n", help="Model name")
     parser.add_argument(
         "--dataset",
         required=True,
@@ -89,9 +89,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--iou-threshold", type=float, default=0.5, help="IoU threshold"
-    )
-    parser.add_argument(
-        "--soft-nms", action="store_true", help="Use Soft-NMS (torchvision only)"
     )
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
@@ -274,9 +271,6 @@ def main() -> None:
     args = parse_args()
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    if args.soft_nms:
-        raise ValueError("Soft-NMS is not supported for Ultralytics evaluation.")
 
     spec = get_spec(args.dataset)
     num_classes = args.num_classes if args.num_classes is not None else spec.num_classes

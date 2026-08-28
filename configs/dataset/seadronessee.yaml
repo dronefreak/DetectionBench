@@ -11,6 +11,15 @@
 # dataset. data.yaml still lists a `test:` path for Ultralytics' schema,
 # but nothing populates it; don't evaluate against it.
 
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! copies before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!       This is the format published on Hugging Face:
+# !!       https://huggingface.co/datasets/dronefreak/SeaDronesSee
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Not a download -- generate it locally from the
+# !!       YOLO copy with `detectionbench-convert-yolo-to-coco`.
 name: seadronessee
 dataset_yaml: /home/neural_debugger/Downloads/datasets/SeaDronesSee/CompressedVersion/yolo_dataset/data.yaml
 dataset_dir: /home/neural_debugger/Downloads/datasets/SeaDronesSee/CompressedVersion/yolo_dataset_coco

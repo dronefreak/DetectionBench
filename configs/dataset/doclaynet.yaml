@@ -6,6 +6,15 @@
 #   detectionbench-prepare-coco --dataset doclaynet --raw-dir <raw> --output-dir <coco_out>
 #   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
 
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! copies before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!       No first-party HF copy; convert from the DocLayNet core release with
+# !!       the two commands above.
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`
+# !!       directly for this dataset (DocLayNet ships COCO JSONs upstream).
 name: doclaynet
 dataset_yaml: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset/data.yaml
 dataset_dir: /home/neural_debugger/Downloads/datasets/DocLayNet_core/yolo_dataset_coco

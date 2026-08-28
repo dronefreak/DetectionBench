@@ -10,6 +10,45 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+# Ultralytics has no single "off" switch for train-time augmentation -- the
+# augmentation pipeline is the sum of these hyperparameters. Zeroing every
+# geometric/photometric knob and disabling the policy-based ones
+# (``auto_augment``, ``erasing``) is how you actually train without
+# augmentation; passed only when ``train(augment=False)``.
+# Ultralytics' ``build_optimizer`` matches optimizer names case-sensitively and
+# raises on anything unknown -- normalize the common lowercase spellings from
+# config.yaml to its canonical casing. Unrecognized values pass through so
+# Ultralytics can raise its own (clearer) error.
+_OPTIMIZER_ALIASES: dict[str, str] = {
+    "auto": "auto",
+    "sgd": "SGD",
+    "adam": "Adam",
+    "adamax": "Adamax",
+    "adamw": "AdamW",
+    "nadam": "NAdam",
+    "radam": "RAdam",
+    "rmsprop": "RMSProp",
+}
+
+_NO_AUGMENTATION_HYP: dict[str, Any] = {
+    "hsv_h": 0.0,
+    "hsv_s": 0.0,
+    "hsv_v": 0.0,
+    "degrees": 0.0,
+    "translate": 0.0,
+    "scale": 0.0,
+    "shear": 0.0,
+    "perspective": 0.0,
+    "flipud": 0.0,
+    "fliplr": 0.0,
+    "bgr": 0.0,
+    "mosaic": 0.0,
+    "mixup": 0.0,
+    "copy_paste": 0.0,
+    "auto_augment": None,
+    "erasing": 0.0,
+}
+
 
 class YOLOTrainer:
     """
@@ -68,6 +107,9 @@ class YOLOTrainer:
         output_dir: str | Path = "outputs",
         workers: int = 4,
         patience: int = 100,
+        optimizer: str = "auto",
+        cos_lr: bool = False,
+        augment: bool = True,
         **extra_kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -84,6 +126,13 @@ class YOLOTrainer:
             workers: Number of DataLoader workers
             patience: Epochs with no mAP improvement before early stopping
                 (Ultralytics' native early-stopping mechanism; 0 disables it)
+            optimizer: Ultralytics optimizer name ('auto', 'SGD', 'Adam',
+                'AdamW', ...); 'auto' lets Ultralytics pick.
+            cos_lr: Use a cosine LR schedule (Ultralytics ``cos_lr``); False
+                keeps Ultralytics' default linear decay.
+            augment: When False, disable train-time augmentation by zeroing
+                every augmentation hyperparameter (see ``_NO_AUGMENTATION_HYP``);
+                explicit hyps in ``extra_kwargs`` still win.
             **extra_kwargs: Passed directly to ultralytics.YOLO.train()
 
         Returns:
@@ -95,21 +144,29 @@ class YOLOTrainer:
 
         model = self._UltralyticsYOLO(self._pt_name)
 
-        results = model.train(
-            data=str(dataset_yaml),
-            epochs=epochs,
-            batch=batch_size,
-            imgsz=imgsz,
-            lr0=lr,
-            amp=use_amp,
-            device=self.device,
-            workers=workers,
-            patience=patience,
-            project=str(output_dir),
-            name=self._model_name,
-            exist_ok=True,
-            **extra_kwargs,
-        )
+        optimizer = _OPTIMIZER_ALIASES.get(optimizer.strip().lower(), optimizer)
+
+        train_kwargs: dict[str, Any] = {
+            "data": str(dataset_yaml),
+            "epochs": epochs,
+            "batch": batch_size,
+            "imgsz": imgsz,
+            "lr0": lr,
+            "amp": use_amp,
+            "device": self.device,
+            "workers": workers,
+            "patience": patience,
+            "optimizer": optimizer,
+            "cos_lr": cos_lr,
+            "project": str(output_dir),
+            "name": self._model_name,
+            "exist_ok": True,
+        }
+        if not augment:
+            train_kwargs.update(_NO_AUGMENTATION_HYP)
+        train_kwargs.update(extra_kwargs)
+
+        results = model.train(**train_kwargs)
 
         # Ultralytics saves best/last weights under project/name/weights/
         weights_dir = output_dir / self._model_name / "weights"

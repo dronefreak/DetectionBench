@@ -70,6 +70,21 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 
 Each dataset is a self-contained adapter under `src/detectionbench/datasets/` that converts its raw format into a canonical COCO layout — everything downstream (COCO↔YOLO conversion, training, evaluation, inference, benchmarking) is dataset-agnostic. See `src/detectionbench/datasets/doclaynet.py` for a fully worked adapter.
 
+### Dataset formats: YOLO vs. COCO
+
+The dataset repos linked above are published on Hugging Face in **Ultralytics YOLO format only** (`images/` + `labels/` + `data.yaml`) — this is what YOLO and RT-DETR training/evaluation consume, via each dataset config's `dataset_yaml`.
+
+**RF-DETR needs a canonical COCO dataset** (per-split `_annotations.coco.json`), referenced by `dataset_dir`. That layout is **not distributed on Hugging Face** — generate it locally from the downloaded YOLO copy:
+
+```bash
+detectionbench-convert-yolo-to-coco \
+  --input-dir  /path/to/<dataset>_yolo \
+  --output-dir /path/to/<dataset>_coco \
+  --dataset-yaml /path/to/<dataset>_yolo/data.yaml
+```
+
+then point `dataset_dir` in `configs/dataset/<key>.yaml` at the `--output-dir`. (DocLayNet is the exception: it ships COCO JSONs upstream, so `detectionbench-prepare-coco` produces its `dataset_dir` directly.)
+
 <!-- LEADERBOARD:START -->
 ## Leaderboards
 

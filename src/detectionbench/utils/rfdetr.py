@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import os
-import random
 from typing import Any
 
-import numpy as np
-import torch
 from hydra.utils import to_absolute_path
 from omegaconf import DictConfig
+
+# Re-exported for callers that import it from here (e.g. train_rfdetr.py); the
+# implementation is shared with the YOLO trainer.
+from detectionbench.utils.utils import seed_everything  # noqa: F401
 
 RFDETR_MODEL_CLASS_MAP = {
     "rfdetr-nano": "RFDETRNano",
@@ -27,19 +27,6 @@ RFDETR_MODEL_ALIASES = {
     "rfdetr_medium": "rfdetr-medium",
     "rfdetr_large": "rfdetr-large",
 }
-
-
-def seed_everything(seed: int) -> None:
-    """Seed supported random number generators for reproducible runs."""
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
 
 def resolve_path(path_value: str | None) -> str | None:

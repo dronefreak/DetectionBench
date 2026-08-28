@@ -18,6 +18,16 @@
 # Verified 2026-08-03: train 6471 / valid 548 / test 1610 images, categories
 # match the 11-class spec, both COCO and YOLO representations checked.
 
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! copies before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!       No first-party HF copy; convert from the raw VisDrone2019-DET release
+# !!       (see the conversion commands above). Third-party YOLO/parquet copy:
+# !!       https://huggingface.co/datasets/Voxel51/VisDrone2019-DET
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Not a download -- generate it locally from the
+# !!       YOLO copy with `detectionbench-convert-yolo-to-coco`.
 name: visdrone
 dataset_yaml: /home/neural_debugger/Downloads/datasets/VisDrone/yolo_dataset/data.yaml
 dataset_dir: /home/neural_debugger/Downloads/datasets/VisDrone/yolo_dataset_coco

@@ -142,7 +142,9 @@ def load_detection_dataset(dataset_dir: Path, split: str) -> tuple[Any, dict[int
 def serialize_metric_result(result: Any) -> dict[str, Any]:
     """Convert a Supervision MeanAveragePrecisionResult into JSON-friendly data."""
     ap_per_class = []
-    for class_id, ap_scores in zip(result.matched_classes, result.ap_per_class):
+    for class_id, ap_scores in zip(
+        result.matched_classes, result.ap_per_class, strict=True
+    ):
         ap_per_class.append(
             {
                 "class_id": int(class_id),
@@ -250,7 +252,7 @@ def pick_best_f1_operating_point(
     for threshold in thresholds:
         precision_metric = Precision()
         recall_metric = Recall()
-        for predictions, targets in zip(all_predictions, all_targets):
+        for predictions, targets in zip(all_predictions, all_targets, strict=True):
             kept = predictions[predictions.confidence >= threshold]
             precision_metric.update(kept, targets)
             recall_metric.update(kept, targets)

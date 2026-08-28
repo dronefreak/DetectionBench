@@ -94,7 +94,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--checkpoint", required=True, help="Path to model checkpoint / .pt file"
     )
-    parser.add_argument("--model", default="yolov5s", help="Model name")
+    parser.add_argument("--model", default="yolov8n", help="Model name")
     parser.add_argument(
         "--dataset",
         required=True,
@@ -130,11 +130,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     # Post-processing
-    parser.add_argument(
-        "--soft-nms",
-        action="store_true",
-        help="Reserved for non-Ultralytics backends and currently unsupported here",
-    )
     parser.add_argument(
         "--nms-threshold", type=float, default=0.5, help="NMS IoU threshold"
     )
@@ -383,10 +378,6 @@ def draw_detections(frame: np.ndarray, overlay: DetectionOverlay) -> np.ndarray:
     """Draw bounding boxes and labels on a BGR frame."""
     out = frame.copy()
     h, w = out.shape[:2]
-    console = RichConsoleManager.get_console()
-    console.print(
-        f"Drawing {len(overlay.boxes)} detections on frame of size {w}x{h} ..."
-    )
 
     # Much more conservative scaling
     scale = max(h, w) / 2000.0
@@ -395,7 +386,9 @@ def draw_detections(frame: np.ndarray, overlay: DetectionOverlay) -> np.ndarray:
     font_scale = max(0.3, scale * 0.35)
     font_thickness = 1
 
-    for box, score, label in zip(overlay.boxes, overlay.scores, overlay.labels):
+    for box, score, label in zip(
+        overlay.boxes, overlay.scores, overlay.labels, strict=True
+    ):
         x1, y1, x2, y2 = box.astype(int)
 
         color_rgb = overlay.class_colors.get(label, (0, 255, 0))
@@ -464,9 +457,6 @@ def main() -> None:
     input_path = Path(args.input)
     if not input_path.exists():
         raise FileNotFoundError(f"Input not found: {input_path}")
-
-    if args.soft_nms:
-        raise ValueError("Soft-NMS is not supported for these model families.")
 
     is_ultralytics = args.model.lower().startswith(("yolo", "rtdetr"))
     is_rfdetr = normalize_model_name(args.model) in RFDETR_MODEL_CLASS_MAP
