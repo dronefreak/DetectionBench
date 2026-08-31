@@ -65,7 +65,7 @@ dev = [
     # hooks to -- otherwise CI's standalone `ruff check`/`mypy`/`bandit` steps
     # can silently drift from what `pre-commit run --all-files` checked.
     # Bump both together (and re-verify) when updating.
-    "ruff==0.16.4",
+    "ruff==0.16.5",
     "mypy==2.3.0",
 
     "types-PyYAML>=6.0.0",
