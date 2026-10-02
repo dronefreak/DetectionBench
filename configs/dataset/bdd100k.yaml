@@ -18,10 +18,12 @@
 # used. Only `box2d` detection labels are converted; lane/drivable-area
 # `poly2d` annotations in the same release are dropped (different task).
 #
-# License: BDD100K License (Berkeley DeepDrive) -- free for non-commercial
-# research/education; registration-gated (manual DUA click-through) and does
-# NOT permit redistribution. Local benchmarking only -- **no Hugging Face
-# mirror**.
+# License: BDD100K's data/labels carry UC Regents' own academic license
+# (verified at https://github.com/bdd100k/bdd100k/blob/master/doc/source/license.rst),
+# which explicitly permits redistribution for educational/research/
+# not-for-profit purposes with notice (commercial use/distribution is
+# restricted to BDD/BAIR Commons members). Mirrored on Hugging Face as
+# `dronefreak/BDD100K` under this license.
 #
 # Stats: see ../../docs/datasets/bdd100k/README.md (class distribution,
 # split summary, box geometry).

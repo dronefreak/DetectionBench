@@ -1,0 +1,81 @@
+# animalsdet_yolo.yaml
+# Animals Detection-specific Hydra config for YOLO / RT-DETR (Ultralytics). Use instead
+# of config.yaml:
+#   detectionbench-train --config-name animalsdet_yolo model.name=yolov8m
+#
+# What the data shows (docs/datasets/animalsdet/README.md + the converted COCO
+# annotations), and how it differs from every dataset configured so far:
+#   * By far the most classes of any dataset in DetectionBench: 80 (next highest is
+#     MARIDA's 15) -- a broad wildlife taxonomy (mammals, birds, reptiles, fish,
+#     invertebrates), not a narrow domain-specific vocabulary. Expect a long,
+#     80-row per-class table and more noise in rare-class scores than usual.
+#   * Severe class imbalance even by this project's standards: `Butterfly` is 8.2% of
+#     all boxes (2,930 instances) while `Squid` has only 29 (0.1%) -- about 100x apart.
+#   * Boxes are NOT small: median box is 32.35% of image area (mean 36.81%), so --
+#     like GC10-DET/PKLot and unlike VisDrone/UAVDT/HRP4K -- resolution is not the
+#     limiting factor here.
+#   * Sparse on average but with a long tail: 1.29 instances/image (median 1), but up
+#     to 123 in one image (a flock/school outlier) -- max_det is bumped below.
+#   * Medium-sized: 18,402 train images (~288 steps/epoch at nbs=64), similar order of
+#     magnitude to PKLot/VisDrone -- a similar epoch budget is a reasonable start.
+#   * Cross-class image duplication in the source (same photo fetched into multiple
+#     class folders when it contains several labeled animals) is already resolved by
+#     the adapter -- see src/detectionbench/datasets/animalsdet.py -- so this is not
+#     a training-time concern.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+
+defaults:
+  - dataset: animalsdet
+  - _self_
+
+model:
+  name: "yolov8m" # override per run, e.g. model.name=yolo26s
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 80 # medium-sized dataset (~288 steps/epoch), similar order to PKLot/VisDrone
+  # Ultralytics AutoBatch (~60% of GPU memory); nbs=64 gradient accumulation keeps the effective batch at 64.
+  batch_size: -1
+  learning_rate: 0.001 # AdamW lr0, same family as the RDD2022/HRP4K/PKLot/GC10-DET recipes
+  imgsz: 640 # boxes are large (median 32% of image area), so resolution isn't the bottleneck here
+  optimizer: "AdamW"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 20 # medium dataset; standard patience
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 3.0 # default
+    close_mosaic: 10 # default
+    mosaic: 1.0 # default
+    max_det: 300 # default; comfortably above the observed max of 123 instances/image
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 640 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  batch_size: ${training.batch_size}
+  num_workers: ${training.workers}
+  score_threshold: 0.05
+  iou_threshold: 0.5
+  soft_nms: false
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

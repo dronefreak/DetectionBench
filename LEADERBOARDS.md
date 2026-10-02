@@ -37,6 +37,19 @@ Curated comparison across DetectionBench's [v1 model shortlist](ROADMAP.md) only
 | 8 | YOLOv8s | 73.01 | 45.85 | 78.26 | 65.13 | [dronefreak/exdark-yolov8s](https://huggingface.co/dronefreak/exdark-yolov8s) |
 | 9 | YOLO11n | 70.36 | 44.72 | 76.18 | 61.15 | [dronefreak/exdark-yolo11n](https://huggingface.co/dronefreak/exdark-yolo11n) |
 
+## GC10-DET
+
+| Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | RF-DETR Small | 76.07 | 42.51 | 87.86 | 65.03 | [dronefreak/gc10det-rfdetr-small](https://huggingface.co/dronefreak/gc10det-rfdetr-small) |
+| 2 | RF-DETR Medium | 75.93 | 41.93 | 78.25 | 67.76 | [dronefreak/gc10det-rfdetr-medium](https://huggingface.co/dronefreak/gc10det-rfdetr-medium) |
+| 3 | YOLO26s | 75.77 | 38.15 | 77.16 | 74.07 | [dronefreak/gc10det-yolo26s](https://huggingface.co/dronefreak/gc10det-yolo26s) |
+| 4 | YOLO26m | 73.97 | 36.94 | 75.7 | 68.19 | [dronefreak/gc10det-yolo26m](https://huggingface.co/dronefreak/gc10det-yolo26m) |
+| 5 | YOLOv8s | 72.54 | 37.79 | 78.54 | 65.23 | [dronefreak/gc10det-yolov8s](https://huggingface.co/dronefreak/gc10det-yolov8s) |
+| 6 | YOLOv8m | 71.88 | 38.8 | 69.77 | 70.84 | [dronefreak/gc10det-yolov8m](https://huggingface.co/dronefreak/gc10det-yolov8m) |
+| 7 | YOLO11n | 70.44 | 40.09 | 78.93 | 62.64 | [dronefreak/gc10det-yolo11n](https://huggingface.co/dronefreak/gc10det-yolo11n) |
+| 8 | RF-DETR Nano | 70.17 | 38.06 | 77.08 | 71.04 | [dronefreak/gc10det-rfdetr-nano](https://huggingface.co/dronefreak/gc10det-rfdetr-nano) |
+
 ## Global Wheat Head Dataset
 
 | Rank | Model | mAP@50 | mAP@50-95 | Precision | Recall | HF Model |

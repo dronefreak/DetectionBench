@@ -32,18 +32,26 @@ as a held-out eval set, not for training) and carves a seeded validation
 set out of ``train`` (``_VAL_FRACTION``), the same approach used for
 HRSID/SSDD.
 
-License: Berkeley DeepDrive's own **BDD100K License** -- free for
-non-commercial research/educational use; commercial use and redistribution
-require separate permission. The data itself is registration-gated (manual
-DUA click-through on the official site), not automatable via
+License: the data and labels (as opposed to the BDD100K code repo, which is
+BSD-3-Clause) are under UC Regents' own academic license, verified directly
+from https://github.com/bdd100k/bdd100k/blob/master/doc/source/license.rst
+-- it explicitly grants "permission to use, copy, modify, and distribute
+this software and its documentation for educational, research, and
+not-for-profit purposes, without fee and without a signed licensing
+agreement," provided the copyright notice and license paragraphs are
+carried forward into any redistribution (commercial use/distribution is
+separately restricted to BDD/BAIR Commons members). This corrects an
+earlier, incorrect "no redistribution permitted" reading of this license
+in this module. The data itself is registration-gated (manual DUA
+click-through on the official site), not automatable via
 ``download_dataset.py`` -- this adapter's raw data was instead pulled from
-the Kaggle mirror above for convenience. That mirror declares no license of
-its own (Kaggle lists it as "Other (specified in description)", i.e. the
-original BDD100K terms still apply) and is not an official Berkeley
-DeepDrive distribution channel, so it does not change the underlying terms
-or grant any redistribution right. Fine to build/evaluate against locally.
-**No Hugging Face mirror** -- the DUA does not permit redistribution,
-regardless of which download channel the raw files came from.
+the Kaggle mirror above for convenience; that mirror declares no license of
+its own (Kaggle lists it as "Other (specified in description)"), so the
+official UC Regents terms above are what actually govern this data,
+regardless of download channel. **Mirrored on Hugging Face** as
+``dronefreak/BDD100K`` under this license, with the full notice text
+reproduced verbatim on the card per the license's own carry-forward
+condition.
 
 Stats: see docs/datasets/bdd100k/README.md (class distribution, split
 summary, box geometry -- generated via detectionbench-dataset-stats).
@@ -115,13 +123,14 @@ class BDD100KAdapter(DatasetAdapter):
             "Vashisht and Darrell, Trevor},\n"
             "  booktitle={Proceedings of the IEEE/CVF Conference on Computer "
             "Vision and Pattern Recognition},\n"
-            "  pages={2636--2645},\n"
+            "  pages={2633--2642},\n"
             "  year={2020}\n"
             "}"
         ),
         license=(
-            "BDD100K License (non-commercial research/education; "
-            "registration-gated, no redistribution)."
+            "BDD100K data license (UC Regents; educational/research/"
+            "not-for-profit redistribution explicitly permitted with "
+            "notice; commercial use restricted to BDD/BAIR Commons)."
         ),
     )
 

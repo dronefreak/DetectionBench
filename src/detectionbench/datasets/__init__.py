@@ -1,6 +1,7 @@
 """Dataset registry: importing this package registers every known adapter."""
 
 from detectionbench.datasets import (  # noqa: F401
+    animalsdet,
     bdd100k,
     brackish,
     ceymo,

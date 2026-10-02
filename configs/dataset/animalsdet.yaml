@@ -1,0 +1,30 @@
+# dataset/animalsdet.yaml
+# Hydra `dataset` config group entry for Animals Detection (80-class wildlife
+# detection, an Open Images V6+ subset re-exported via OIDv4_ToolKit).
+#
+# Converted from the Kaggle release (`{train,test}/<ClassName>/*.jpg` +
+# `{train,test}/<ClassName>/Label/*.txt`) via:
+#   detectionbench-prepare-coco --dataset animalsdet --raw-dir <raw_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter merges per-class-folder duplicate images and carves a seeded 15%
+# validation slice out of train (see src/detectionbench/datasets/animalsdet.py).
+#
+# License: NOT the Kaggle page's claimed CC0 -- this is genuinely Open Images
+# data (images: CC BY 2.0 per photo; annotations: CC BY 4.0, Google). Both
+# permit redistribution with attribution.
+#
+# Stats: see ../../docs/datasets/animalsdet/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: animalsdet
+dataset_yaml: /home/neural_debugger/Downloads/datasets/Animals_Detection_Images_Dataset_yolo/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/Animals_Detection_Images_Dataset_coco
+num_classes: 80
+
+eval_split: test

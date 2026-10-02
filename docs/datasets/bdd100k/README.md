@@ -46,7 +46,7 @@ Computed from the canonical COCO layout produced by `detectionbench-prepare-coco
   title={BDD100K: A Diverse Driving Dataset for Heterogeneous Multitask Learning},
   author={Yu, Fisher and Chen, Haofeng and Wang, Xin and Xian, Wenqi and Chen, Yingying and Liu, Fangchen and Madhavan, Vashisht and Darrell, Trevor},
   booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={2636--2645},
+  pages={2633--2642},
   year={2020}
 }
 ```
