@@ -1,0 +1,29 @@
+# dataset/neudet.yaml
+# Hydra `dataset` config group entry for NEU-DET (steel surface defect detection).
+#
+# Converted from the official release (`IMAGES/*.jpg` + `ANNOTATIONS/*.xml`,
+# Pascal VOC) via:
+#   detectionbench-prepare-coco --dataset neudet --raw-dir <NEU-DET_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# NEU-DET has no official split; the adapter applies a deterministic seeded
+# 80/10/10 split (see src/detectionbench/datasets/neudet.py).
+#
+# License: no explicit grant, citation-requested only. Not mirrored on
+# Hugging Face; get the raw data via `detectionbench-download-dataset
+# --dataset neudet` (Google Drive + Baidu Netdisk links).
+#
+# Stats: see ../../docs/datasets/neudet/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: neudet
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/NEUDET/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/NEUDET/yolo_dataset_coco
+num_classes: 6
+
+eval_split: test

@@ -1,0 +1,31 @@
+# dataset/marida.yaml
+# Hydra `dataset` config group entry for MARIDA (Sentinel-2 marine debris detection).
+#
+# Converted from the official release (`patches/S2_<date>_<tile>/*.tif` +
+# `splits/{train,val,test}_X.txt`) via:
+#   detectionbench-prepare-coco --dataset marida --raw-dir <MARIDA_download_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter converts MARIDA's native per-pixel classification masks into
+# bounding boxes via connected-component extraction, and renders a
+# true-color-ish RGB image from the raw 11-band Sentinel-2 reflectance (see
+# src/detectionbench/datasets/marida.py for both conversions in detail).
+#
+# License: CC-BY-4.0 (confirmed on source.coop/ntua/marida and the dataset's
+# own README) -- mirrored on Hugging Face with a real SPDX tag:
+# https://huggingface.co/datasets/dronefreak/MARIDA
+#
+# Stats: see ../../docs/datasets/marida/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: marida
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/MARIDA/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/MARIDA/yolo_dataset_coco
+num_classes: 15
+
+eval_split: test

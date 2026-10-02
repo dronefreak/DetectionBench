@@ -1,0 +1,31 @@
+# dataset/ssdd.yaml
+# Hydra `dataset` config group entry for SSDD (SAR ship detection).
+#
+# Converted from the official BBox_SSDD/coco_style release (`images/` +
+# already-COCO-format `annotations/{train,test}.json`) via:
+#   detectionbench-prepare-coco --dataset ssdd --raw-dir <BBox_SSDD/coco_style_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps the official train/test split and carves a seeded 15%
+# validation slice out of train (see src/detectionbench/datasets/ssdd.py).
+#
+# License: Apache-2.0 (repo, confirmed) -- but imagery is partly
+# TerraSAR-X/TanDEM-X (DLR-restricted), same second-order sensor-rights
+# situation as HRSID. Mirrored on Hugging Face:
+# https://huggingface.co/datasets/dronefreak/SSDD (see the card for the
+# full sensor-provenance explanation).
+#
+# Stats: see ../../docs/datasets/ssdd/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: ssdd
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SSDD/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/SSDD/yolo_dataset_coco
+num_classes: 1
+
+eval_split: test

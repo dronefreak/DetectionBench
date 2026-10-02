@@ -248,15 +248,7 @@ future.md
 DetectionBench_Dataset_Inventory.md
 assets/reddit_chart1_leaderboard.png
 assets/reddit_chart2_efficiency.png
-configs/dataset/hrp4k.yaml
-configs/dataset/marida.yaml
-configs/dataset/neudet.yaml
-configs/dataset/ssdd.yaml
 demo_banner.mp4
-docs/datasets/hrp4k/
-docs/datasets/marida/
-docs/datasets/neudet/
-docs/datasets/ssdd/
 gwhd-domain-shift-analysis.md
 inference_outputs/
 posts.md

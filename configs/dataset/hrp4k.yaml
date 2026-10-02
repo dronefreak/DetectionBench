@@ -1,0 +1,36 @@
+# dataset/hrp4k.yaml
+# Hydra `dataset` config group entry for HRP4K (road pothole detection).
+#
+# Converted from the official Zenodo release (doi:10.5281/zenodo.17522874) --
+# `{train,valid,test}/images/` + already-COCO-format `{train,valid,test}.json`
+# -- via:
+#   detectionbench-prepare-coco --dataset hrp4k --raw-dir <HRP4K_dir> --output-dir <coco_out>
+#   detectionbench-convert-coco-to-yolo --input-dir <coco_out> --output-dir <yolo_out>   # writes <yolo_out>/data.yaml
+# The adapter keeps the official train/valid/test split as-is (see
+# src/detectionbench/datasets/hrp4k.py).
+#
+# Known upstream data-completeness gap (train split only): the official
+# train.json references 4,203 images but the V1.00 archive only actually
+# ships 2,286 of them (confirmed against Zenodo's own file listing, not a
+# download artifact). valid/test are complete (900/900 each). The adapter
+# filters every split down to images that exist on disk, so real counts are
+# train 2,286 images / 2,790 boxes, valid 900/1,037, test 900/921 -- see the
+# adapter module docstring for the full explanation.
+#
+# License: CC BY 4.0 (Zenodo record, confirmed).
+#
+# Stats: see ../../docs/datasets/hrp4k/README.md (class distribution,
+# split summary, box geometry).
+#
+# !! MACHINE-LOCAL PATHS: `dataset_yaml` and `dataset_dir` below are absolute
+# !! paths on the original author's machine -- edit both to point at your own
+# !! converted copy before training/evaluating on this dataset.
+# !!   dataset_yaml -> Ultralytics YOLO `data.yaml` (used by YOLO / RT-DETR).
+# !!   dataset_dir  -> canonical COCO root (per-split `_annotations.coco.json`);
+# !!       used by RF-DETR ONLY. Produced by `detectionbench-prepare-coco`.
+name: hrp4k
+dataset_yaml: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/HRP4K/yolo_dataset/data.yaml
+dataset_dir: /home/neural_debugger/Downloads/datasets/ObjectDetectionDatasets/HRP4K/coco_dataset
+num_classes: 1
+
+eval_split: test
