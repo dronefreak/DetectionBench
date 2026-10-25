@@ -27,8 +27,8 @@
 #     (unlike UAVDT, where val and test differ sharply).
 #
 # Everything here is a reasoned starting point, not a tuned result.
-# Local-only dataset: the BDD100K licence does not permit redistribution, so no HF mirror
-# (see configs/dataset/bdd100k.yaml).
+# Mirrored on Hugging Face as `dronefreak/BDD100K`, in its raw as-provided
+# format (see configs/dataset/bdd100k.yaml).
 
 defaults:
   - dataset: bdd100k
