@@ -1,36 +1,31 @@
 """
 BDD100K adapter -- multi-class autonomous-driving object detection.
 
-Source: the Berkeley DeepDrive "100k Images" + "Labels" release, as
-downloaded via the third-party Kaggle mirror
-https://www.kaggle.com/datasets/solesensei/solesensei_bdd100k (uploaded by
-Kaggle user SoleSensei, not by Berkeley DeepDrive -- the official site was
-registration-gated at the time this was fetched; the Kaggle copy carries no
-separate license of its own, see the License note below) --
-``images/100k/{train,val}/**/*.jpg`` (1280x720 JPEGs; this mirror's zip
-layout splits the 70,000 train images across four subfolders confusingly
-named ``trainA``/``trainB``/``testA``/``testB`` -- all four are genuinely
-part of ``train`` (verified: their combined recursive count is exactly
-70,000, matching the official train total, and every one of
-``train.json``'s 69,863 entries resolves to a file inside one of these
-four subfolders); the loose, separate ``images/100k/test/`` top-level
-directory (293 files, no matching labels) is the mirror's copy of the
-*actual* unlabelled official test split and is correctly never referenced
-by this adapter. ``val`` is flat. All image subfolders are walked
-recursively here.) plus the original-format
-``labels/bdd100k_labels_images_{train,val}.json`` (one dict per image:
-``attributes`` + a ``labels`` list mixing ``box2d`` detection boxes with
-``poly2d`` lane/drivable-area annotations). Only ``box2d`` entries are
-converted; lane markings and drivable-area polygons are not a detection
-task and are dropped. The official ``test`` split (20,000 images) ships
-with no labels (held out for the leaderboard) and is not used here.
+Source: the official Berkeley DeepDrive "100K Images" + "Labels" release,
+downloaded directly from Berkeley's own distribution server (not a
+third-party mirror) -- ``images_100k/100k/{train,val,test}/**/*.jpg``
+(1280x720 JPEGs; 70,000/10,000/20,000, flat per split, any ``shard_NNN/``
+subdirectories -- an artifact of this project's Hugging Face mirror
+sharding, see below -- are walked recursively) plus
+``labels/100k/{train,val,test}/<name>.json``, one JSON file per image, in
+BDD100K's native per-image format: ``{"name": <id, no extension>,
+"attributes": {"weather", "scene", "timeofday"}, "frames": [{"objects":
+[...]}]}``. Each ``frames[0].objects`` entry mixes ``box2d`` detection boxes
+(``category`` one of this adapter's 10 classes) with ``poly2d`` lane-marking
+and drivable-area polygons (different tasks, e.g. ``category`` values like
+``"lane/road curb"`` or ``"area/drivable"``); only ``box2d`` entries whose
+category is one of the 10 detection classes are converted here.
 
-BDD100K's own labelled splits are ``train`` (69,863 labelled images) and
-``val`` (10,000). This adapter keeps ``val`` as the canonical ``test``
-(consistent with how ``val``'s ground truth in this release is only usable
-as a held-out eval set, not for training) and carves a seeded validation
-set out of ``train`` (``_VAL_FRACTION``), the same approach used for
-HRSID/SSDD.
+Unlike the old Kaggle-mirror-derived version of this adapter, **all three**
+official splits ship with real labels in this release -- including
+``test`` (20,000 images), verified directly against sample files: it is
+*not* empty or held out, contrary to the commonly repeated claim that
+BDD100K's test labels are withheld for a leaderboard. This simplifies the
+split handling considerably: there is no more carving a seeded validation
+slice out of train. The three official splits map directly onto this
+project's canonical COCO layout: official ``train`` (70,000) ->
+``train``, official ``val`` (10,000) -> ``valid``, official ``test``
+(20,000) -> ``test``.
 
 License: the data and labels (as opposed to the BDD100K code repo, which is
 BSD-3-Clause) are under UC Regents' own academic license, verified directly
@@ -40,27 +35,24 @@ this software and its documentation for educational, research, and
 not-for-profit purposes, without fee and without a signed licensing
 agreement," provided the copyright notice and license paragraphs are
 carried forward into any redistribution (commercial use/distribution is
-separately restricted to BDD/BAIR Commons members). This corrects an
-earlier, incorrect "no redistribution permitted" reading of this license
-in this module. The data itself is registration-gated (manual DUA
-click-through on the official site), not automatable via
-``download_dataset.py`` -- this adapter's raw data was instead pulled from
-the Kaggle mirror above for convenience; that mirror declares no license of
-its own (Kaggle lists it as "Other (specified in description)"), so the
-official UC Regents terms above are what actually govern this data,
-regardless of download channel. **Mirrored on Hugging Face** as
+separately restricted to BDD/BAIR Commons members). The data itself is
+registration-gated (manual DUA click-through on the official site), not
+automatable via ``download_dataset.py``. **Mirrored on Hugging Face** as
 ``dronefreak/BDD100K`` under this license, with the full notice text
 reproduced verbatim on the card per the license's own carry-forward
-condition.
+condition, in this exact raw layout (just reorganized into
+``shard_NNN/`` subdirectories per split to stay under Hugging Face's
+practical per-directory file-count ceiling -- this adapter's recursive
+globbing is unaffected by that).
 
 Stats: see docs/datasets/bdd100k/README.md (class distribution, split
-summary, box geometry -- generated via detectionbench-dataset-stats).
+summary, box geometry -- generated via detectionbench-dataset-stats; this
+will need regenerating against the new raw layout/splits).
 """
 
 from __future__ import annotations
 
 import json
-import random
 from pathlib import Path
 from typing import Any
 
@@ -89,8 +81,8 @@ _CLASS_TO_ID = {name: i for i, name in enumerate(_CLASSES)}
 _IMAGE_WIDTH = 1280
 _IMAGE_HEIGHT = 720
 
-_VAL_FRACTION = 0.15
-_SPLIT_SEED = 42
+# Official split name -> this project's canonical COCO split name.
+_SPLIT_MAP = {"train": "train", "val": "valid", "test": "test"}
 
 
 @register
@@ -103,9 +95,9 @@ class BDD100KAdapter(DatasetAdapter):
         classes=_CLASSES,
         description=(
             "BDD100K is a large-scale, diverse driving-video dataset; this "
-            "adapter covers its 100K-image object-detection task: 79,863 "
-            "labelled 1280x720 dashcam images (69,863 train + 10,000 val, "
-            "the official held-out test split has no released labels) "
+            "adapter covers its 100K-image object-detection task: all "
+            "100,000 1280x720 dashcam images (70,000 train + 10,000 val + "
+            "20,000 test, all three officially released with real labels) "
             "annotated for 10 classes spanning vulnerable road users "
             "(person, rider), vehicles (car, truck, bus, train, motor, "
             "bike), and traffic control (traffic light, traffic sign), "
@@ -136,39 +128,21 @@ class BDD100KAdapter(DatasetAdapter):
 
     def prepare_coco(self, raw_dir: Path, output_dir: Path) -> None:
         """Convert the official BDD100K 100k-images release into canonical COCO."""
-        image_dir = raw_dir / "images" / "100k"
-        label_dir = raw_dir / "labels"
-        if not image_dir.is_dir() or not label_dir.is_dir():
+        image_root = raw_dir / "images_100k" / "100k"
+        label_root = raw_dir / "labels" / "100k"
+        if not image_root.is_dir() or not label_root.is_dir():
             raise FileNotFoundError(
-                f"Expected {raw_dir}/images/100k and {raw_dir}/labels."
+                f"Expected {raw_dir}/images_100k/100k and {raw_dir}/labels/100k."
             )
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        train_entries = json.loads(
-            (label_dir / "bdd100k_labels_images_train.json").read_text(encoding="utf-8")
-        )
-        train_images_by_path = _index_images(image_dir / "train")
-        shuffled = train_entries[:]
-        random.Random(_SPLIT_SEED).shuffle(shuffled)  # noqa: S311  # nosec: B311
-        n_val = max(1, round(len(shuffled) * _VAL_FRACTION))
-        val_names = {e["name"] for e in shuffled[:n_val]}
-
-        _write_split(
-            [e for e in train_entries if e["name"] not in val_names],
-            train_images_by_path,
-            output_dir / "train",
-        )
-        _write_split(
-            [e for e in train_entries if e["name"] in val_names],
-            train_images_by_path,
-            output_dir / "valid",
-        )
-
-        val_entries = json.loads(
-            (label_dir / "bdd100k_labels_images_val.json").read_text(encoding="utf-8")
-        )
-        val_images_by_path = _index_images(image_dir / "val")
-        _write_split(val_entries, val_images_by_path, output_dir / "test")
+        for official_split, canonical_split in _SPLIT_MAP.items():
+            images_by_name = _index_images(image_root / official_split)
+            entries = [
+                json.loads(p.read_text(encoding="utf-8"))
+                for p in sorted((label_root / official_split).rglob("*.json"))
+            ]
+            _write_split(entries, images_by_name, output_dir / canonical_split)
 
 
 def _index_images(root: Path) -> dict[str, Path]:
@@ -189,22 +163,27 @@ def _write_split(
     annotation_id = 1
 
     for image_id, entry in enumerate(entries):
-        name = entry["name"]
-        src = images_by_name.get(name)
+        # ``entry["name"]`` is the bare id (no extension) in this release's
+        # native per-image JSON, unlike the old Kaggle mirror's combined
+        # label files where "name" already included ".jpg".
+        file_name = f"{entry['name']}.jpg"
+        src = images_by_name.get(file_name)
         if src is None:
             continue
-        link_image(src, split_output_dir / name)
+        link_image(src, split_output_dir / file_name)
         images.append(
             {
                 "id": image_id,
-                "file_name": name,
+                "file_name": file_name,
                 "width": _IMAGE_WIDTH,
                 "height": _IMAGE_HEIGHT,
             }
         )
-        for label in entry.get("labels", []):
-            box = label.get("box2d")
-            category = label.get("category")
+        frames = entry.get("frames") or []
+        objects = frames[0].get("objects", []) if frames else []
+        for obj in objects:
+            box = obj.get("box2d")
+            category = obj.get("category")
             if box is None or category not in _CLASS_TO_ID:
                 continue
             x1, y1, x2, y2 = box["x1"], box["y1"], box["x2"], box["y2"]

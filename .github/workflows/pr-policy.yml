@@ -11,9 +11,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check conventional commit format
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -euo pipefail
-          TITLE="${{ github.event.pull_request.title }}"
           PATTERN="^(feat|fix|docs|doc|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?!?: .+"
           if [[ ! "$TITLE" =~ $PATTERN ]]; then
             echo "::error::PR title does not follow Conventional Commits format."
@@ -37,9 +38,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check for at least one label
+        env:
+          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
         run: |
           set -euo pipefail
-          LABEL_COUNT=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq 'length')
+          LABEL_COUNT=$(echo "$LABELS_JSON" | jq 'length')
           if [[ "$LABEL_COUNT" -eq 0 ]]; then
             echo "::error::PR must have at least one label before merging."
             echo "Consider adding a label such as: bug, enhancement, documentation, maintenance, etc."
@@ -53,9 +56,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check branch naming convention
+        env:
+          BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
-          BRANCH="${{ github.head_ref }}"
           PATTERN="^(feature|fix|bugfix|hotfix|docs|chore|refactor|test|ci|release|claude)/"
           if [[ ! "$BRANCH" =~ $PATTERN ]]; then
             echo "::warning::Branch name '$BRANCH' does not follow the recommended naming convention."

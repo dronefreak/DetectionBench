@@ -1,4 +1,4 @@
-"""Tests for the BDD100K (native JSON) -> canonical COCO adapter."""
+"""Tests for the BDD100K (native per-image JSON) -> canonical COCO adapter."""
 
 import json
 from pathlib import Path
@@ -6,51 +6,78 @@ from pathlib import Path
 from detectionbench.datasets.bdd100k import BDD100KAdapter
 
 
-def _entry(name: str, categories: list[str]) -> dict:
+def _entry(stem: str, categories: list[str]) -> dict:
     return {
-        "name": name,
+        "name": stem,
         "attributes": {
             "weather": "clear",
             "scene": "city street",
             "timeofday": "daytime",
         },
-        "labels": [
+        "frames": [
             {
-                "category": cat,
-                "attributes": {"occluded": False, "truncated": False},
-                "box2d": {"x1": 10.0, "y1": 20.0, "x2": 40.0, "y2": 60.0},
-                "id": i,
+                "timestamp": 10000,
+                "objects": [
+                    {
+                        "category": cat,
+                        "id": i,
+                        "attributes": {"occluded": False, "truncated": False},
+                        "box2d": {"x1": 10.0, "y1": 20.0, "x2": 40.0, "y2": 60.0},
+                    }
+                    for i, cat in enumerate(categories)
+                ]
+                # lane/drivable-area style poly2d entries, which must be skipped
+                + [
+                    {
+                        "category": "area/drivable",
+                        "id": 99,
+                        "attributes": {},
+                        "poly2d": [],
+                    }
+                ],
             }
-            for i, cat in enumerate(categories)
-        ]
-        # a lane/drivable-area style entry with no box2d, which must be skipped
-        + [{"category": "lane", "attributes": {}, "poly2d": [], "id": 99}],
+        ],
     }
 
 
+def _write_split(
+    raw_dir: Path,
+    official_split: str,
+    shard: bool,
+    names_and_cats: list[tuple[str, list[str]]],
+) -> None:
+    img_dir = raw_dir / "images_100k" / "100k" / official_split
+    lbl_dir = raw_dir / "labels" / "100k" / official_split
+    if shard:
+        img_dir = img_dir / "shard_000"
+        lbl_dir = lbl_dir / "shard_000"
+    img_dir.mkdir(parents=True)
+    lbl_dir.mkdir(parents=True)
+    for stem, cats in names_and_cats:
+        (img_dir / f"{stem}.jpg").write_bytes(b"fake")
+        (lbl_dir / f"{stem}.json").write_text(json.dumps(_entry(stem, cats)))
+
+
 def _write_bdd100k(raw_dir: Path) -> None:
-    (raw_dir / "images" / "100k" / "train" / "trainA").mkdir(parents=True)
-    (raw_dir / "images" / "100k" / "train" / "trainB").mkdir(parents=True)
-    (raw_dir / "images" / "100k" / "val").mkdir(parents=True)
-    (raw_dir / "labels").mkdir(parents=True)
-
-    train_entries = []
-    for i in range(20):
-        name = f"train_{i:03d}.jpg"
-        sub = "trainA" if i % 2 == 0 else "trainB"
-        (raw_dir / "images" / "100k" / "train" / sub / name).write_bytes(b"fake")
-        train_entries.append(_entry(name, ["car", "person"]))
-    (raw_dir / "labels" / "bdd100k_labels_images_train.json").write_text(
-        json.dumps(train_entries)
+    # Train images sharded into shard_NNN/ (mirrors the Hugging Face layout);
+    # val/test left flat -- the adapter must handle both via recursive glob.
+    _write_split(
+        raw_dir,
+        "train",
+        shard=True,
+        names_and_cats=[(f"train_{i:03d}", ["car", "person"]) for i in range(20)],
     )
-
-    val_entries = []
-    for i in range(6):
-        name = f"val_{i:03d}.jpg"
-        (raw_dir / "images" / "100k" / "val" / name).write_bytes(b"fake")
-        val_entries.append(_entry(name, ["traffic light"]))
-    (raw_dir / "labels" / "bdd100k_labels_images_val.json").write_text(
-        json.dumps(val_entries)
+    _write_split(
+        raw_dir,
+        "val",
+        shard=False,
+        names_and_cats=[(f"val_{i:03d}", ["rider"]) for i in range(5)],
+    )
+    _write_split(
+        raw_dir,
+        "test",
+        shard=False,
+        names_and_cats=[(f"test_{i:03d}", ["traffic light"]) for i in range(6)],
     )
 
 
@@ -72,15 +99,21 @@ def test_prepare_coco_splits_multiclass(tmp_path: Path) -> None:
             assert im["width"] == 1280
             assert im["height"] == 720
 
-    # 20 train entries -> train + valid, 15% held out; 6 val entries -> test.
-    assert counts["train"] + counts["valid"] == 20
-    assert counts["valid"] == 3  # round(20 * 0.15)
+    # Official train/val/test map directly onto canonical train/valid/test --
+    # no more carving a validation slice out of train.
+    assert counts["train"] == 20
+    assert counts["valid"] == 5
     assert counts["test"] == 6
 
-    # 2 box2d labels/image (lane poly2d dropped) -> train+valid boxes == 40.
+    # 2 box2d labels/image in train (poly2d dropped) -> 40 boxes.
     train_payload = json.loads((out / "train" / "_annotations.coco.json").read_text())
+    assert len(train_payload["annotations"]) == 40
+
     valid_payload = json.loads((out / "valid" / "_annotations.coco.json").read_text())
-    assert len(train_payload["annotations"]) + len(valid_payload["annotations"]) == 40
+    assert len(valid_payload["annotations"]) == 5
+    assert {a["category_id"] for a in valid_payload["annotations"]} == {
+        BDD100KAdapter.spec.classes.index("rider")
+    }
 
     test_payload = json.loads((out / "test" / "_annotations.coco.json").read_text())
     assert len(test_payload["annotations"]) == 6
