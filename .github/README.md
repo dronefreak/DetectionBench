@@ -176,7 +176,7 @@ detectionbench-train dataset=doclaynet model.name=rfdetr-nano
 
 # 4. Evaluate / infer / benchmark a checkpoint directly (--dataset-yaml is
 #    optional -- it auto-resolves from configs/dataset/<key>.yaml if omitted;
-#    the same command works unchanged for model=rfdetr-nano)
+#    the same command works unchanged for --model rfdetr-nano)
 detectionbench-evaluate --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet
 detectionbench-infer --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet --input /path/to/images
 detectionbench-benchmark --model yolov8n --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt

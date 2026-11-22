@@ -19,6 +19,7 @@ and this project adheres to **Semantic Versioning**.
 * Documentation and governance templates
 * Dataset statistics pages embed `<key>_banner.jpg` when present (BDD100K, CeyMo, HRP4K, KITTI, PKLot)
 * CPU-only tests for `inference`, `benchmark`, `download_dataset` and `dataset_stats`
+* Tests for `export_onnx`, `prepare_coco` and the `detectionbench-train` dispatcher
 
 ### Changed
 
@@ -27,6 +28,8 @@ and this project adheres to **Semantic Versioning**.
 * `detectionbench-infer --imgsz` defaults to the checkpoint's training size (was 1280); RF-DETR inference uses the resolution in `training_config.json`
 * `detectionbench-benchmark` runs RF-DETR at the checkpoint's training resolution (or family default) unless `--imgsz` is given; YOLO stays at 640
 * README dataset footnotes condensed; per-split counts live in `docs/datasets/<key>/`
+* README hero banner: HRSID tile replaced with a readable sample (re-encoded PNG, 7.9 MB → 5.4 MB)
+* `export.imgsz` defaults to `null`: ONNX export uses the checkpoint's training size (Ultralytics saved `imgsz`; RF-DETR `training_config.json`, else family default) instead of a fixed 640
 
 ### Deprecated
 
@@ -49,6 +52,8 @@ and this project adheres to **Semantic Versioning**.
 * `detectionbench-benchmark` silently benchmarked RF-DETR Large for any unrecognised RF-DETR name
 * `detectionbench-download-dataset`: manual instructions printed a literal `<key>`; failed direct downloads left partial files; `--method gdrive` without a Drive option fell through silently
 * README Source links pointed at the untracked `dataset_cards/` directory (404 on GitHub)
+* `detectionbench-train --config-name <x>_rfdetr` without `model.name=` (as the config headers document) was sent to the YOLO trainer; `+`/`++`-prefixed and quoted `model.name` overrides were too
+* ONNX export exported KITTI/BDD100K YOLO models (trained at 1280/960) at 640, and rejected RF-DETR alias names (`nano`, `rfdetr_small`)
 
 ### Security
 
