@@ -1,0 +1,95 @@
+# bdd100k_rfdetr_medium.yaml (medium tier)
+# BDD100K-specific Hydra config for medium-tier RF-DETR. Siblings: bdd100k_rfdetr.yaml (nano tier),
+# bdd100k_rfdetr_small.yaml (same dataset/recipe, resolution + batch_size tuned per tier). Use:
+#   detectionbench-train --config-name bdd100k_rfdetr_medium
+# Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
+# automatically), so it will match training.
+#
+# Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
+# supplies the dataset, checkpoint (experiments/bdd100k/<model>/checkpoint_best_total.pth) and output folder:
+#   detectionbench-evaluate --config-name bdd100k_rfdetr_medium --model rfdetr-medium
+# The resolution is taken from training_config.json next to the checkpoint; pass --resolution only if that
+# file is missing. The COCO folder comes from configs/dataset/bdd100k.yaml; on another machine add
+# --dataset-dir <coco folder>.
+#
+# Why BDD100K needs its own settings (from docs/datasets/bdd100k/README.md + the converted COCO annotations):
+#   * Big and uniform: 70,000 train / 10,000 valid / 20,000 test images (the official Berkeley split -- all
+#     three now carry real labels, see src/detectionbench/datasets/bdd100k.py), all 1280x720. ~18 boxes/image
+#     (p99 47, max 91). At an effective batch of ~16 an epoch is ~4,400 steps, so ~30 epochs is >130k steps.
+#   * RF-DETR squares the frame (1280x720 -> R x R), so the median ~29 px box becomes ~29 * R / 960 px:
+#     at the family defaults (384 / 512 / 576) that is ~11 / ~15 / ~17 px, and traffic lights (~16 px native) fall to
+#     ~6.5 / ~8.7 / ~9.8 px. Resolutions 576 / 640 / 704 give ~17 / ~19 / ~21 px medians -- a modest bump, because
+#     this dataset is ~9x larger than VisDrone and cost per epoch (roughly with resolution squared) dominates.
+#     Sizes must be multiples of 64 (patch 16 x 2 windows, square_resize_div_64).
+#   * Validation is 10k images drawn from the same distribution as test, so it is a trustworthy early-stopping signal
+#     (unlike UAVDT, where val and test differ sharply).
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Mirrored on Hugging Face as `dronefreak/BDD100K`, in its raw as-provided
+# format (see configs/dataset/bdd100k.yaml).
+#
+# Recommended for a single consumer GPU (e.g. RTX 4070 Super, 12GB). Deferred until nano/small results look
+# promising and there's time to spend on it -- a medium-tier epoch costs noticeably more than nano/small
+# (bigger model, smaller safe batch -> more optimizer steps per epoch too).
+#
+# Medium-tier batch size @ resolution=704, AMP on (1-epoch real training runs against this exact
+# dataset/GPU, batch raised until CUDA OOM -- or until internal OOM-retry warnings appeared even on an
+# otherwise-"successful" run, which counts as unstable here -- with ~830-920MB already used elsewhere):
+#     batch 4 -> 6.7 GB peak reserved (clean)       batch 6 -> 9.6 GB peak reserved (clean, thin margin)
+#     batch 5 -> 8.1 GB peak reserved (clean)        batch 7 -> "succeeds" but with a CUDA OOM retry
+#   batch_size is pinned (not "auto") so a long unattended run can't have RF-DETR's auto-sizing misjudge
+#   headroom; 4 is two probe-steps under the clean ceiling (6), matching the margin policy used for the YOLO
+#   configs. grad_accum_steps=4 keeps the effective batch at exactly 16 (RF-DETR's tuned default), so
+#   learning_rate/learning_rate_encoder don't need to change.
+#   detectionbench-train --config-name bdd100k_rfdetr_medium
+#     # Not independently measured on the full dataset -- the probe above used a small held-out subset,
+#     # sufficient for the VRAM ceiling but not for a precise img/s figure. Treat the 30-epoch default as a
+#     # multi-day run and consider training.epochs=10-15 for a first pass.
+
+defaults:
+  - dataset: bdd100k
+  - _self_
+
+model:
+  # Medium tier -- deferred until nano/small results look promising and more time is available (see header).
+  name: "rfdetr-medium"
+  num_classes: ${dataset.num_classes}
+  pretrain_weights: null
+  resolution: 704 # family default is 576; bumped per header's box-size rationale. Must be divisible by 64
+
+training:
+  dataset_dir: ${dataset.dataset_dir}
+  dataset_file: "roboflow"
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  epochs: 30 # ~4,400 steps/epoch at effective batch 16; cosine decays over the whole run
+  # Fixed (not "auto") -- empirically probed for rfdetr-medium @ resolution=704, see header.
+  batch_size: 4
+  grad_accum_steps: 4 # batch_size * grad_accum_steps = 16, RF-DETR's tuned effective batch
+  learning_rate: 0.0001 # RF-DETR's fine-tuning default; unchanged at effective batch ~16
+  learning_rate_encoder: 0.00015
+  scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 30-epoch run never reaches
+  warmup_epochs: 0.25 # ~900 steps
+  checkpoint_interval: 10
+  eval_interval: 1
+  workers: 8
+  weight_decay: 0.0001
+  use_ema: true
+  amp_dtype: "auto"
+  tensorboard: true
+  wandb: false
+  early_stopping: true
+  early_stopping_patience: 8 # stable 10k-image validation; cosine's low-LR tail may still gain late, so not too short
+  early_stopping_min_delta: 0.001
+  progress_bar: "tqdm" # "rich" shows no live bar when piped through tee; tqdm does
+  augmentation_backend: "gpu"
+  device: "cuda"
+  seed: 42
+  project: null
+  run_name: null
+  resume: null
+  run_test: false
+  save_dataset_grids: false
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}
