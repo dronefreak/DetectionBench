@@ -236,7 +236,11 @@ experiments/
 /model_cards/
 
 # Banners
-banners/
+/banners/
+
+# Local run logs and model-card staging (machine-local, never committed)
+/logs/
+/temp/
 
 # MD files
 prompts.md
