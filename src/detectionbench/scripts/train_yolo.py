@@ -8,19 +8,17 @@ based on `model.name=...` (see `train.py`, the dispatcher).
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
 import hydra
-import numpy as np
 from omegaconf import DictConfig, OmegaConf
 
 from detectionbench.datasets import get_spec
 from detectionbench.scripts.evaluate_yolo import (
     EvaluationOptions,
     evaluate_yolo,
-    print_metrics_table,
+    finalize_metrics,
 )
 from detectionbench.utils.trainer import YOLOTrainer
 from detectionbench.utils.utils import RichConsoleManager, seed_everything
@@ -31,6 +29,10 @@ CONFIGS_DIR = Path(__file__).resolve().parents[3] / "configs"
 @hydra.main(version_base=None, config_path=str(CONFIGS_DIR), config_name="config")
 def train_and_evaluate(cfg: DictConfig) -> None:
     """Train the configured YOLO model and evaluate the best checkpoint."""
+    # Ultralytics re-seeds every RNG from its own `seed` train() argument, so the
+    # same value is used for both; 0 is Ultralytics' default.
+    seed = int(cfg.training.get("seed", 0))
+    seed_everything(seed)
     console = RichConsoleManager.get_console()
     console.print(OmegaConf.to_yaml(cfg), style="warning")
     trainer = YOLOTrainer(
@@ -72,6 +74,7 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         cos_lr=cos_lr,
         augment=cfg.training.use_augmentation,
         resume=cfg.training.get("resume"),
+        seed=seed,
         **extra_args,
     )
     if not results["model_path"]:
@@ -98,29 +101,11 @@ def train_and_evaluate(cfg: DictConfig) -> None:
         )
     )
     console.print("\n[bold green]Evaluation metrics:[/bold green]")
-
-    print_metrics_table(cfg.model, metrics)
-
-    # Save JSON summary
-    metrics_path = Path(cfg.evaluation.output_dir) / "metrics.json"
-    serializable: dict[str, Any] = {
-        k: (float(v) if isinstance(v, (float, np.floating)) else v)
-        for k, v in metrics.items()
-        if k != "per_class"
-    }
-    if "per_class" in metrics:
-        serializable["per_class"] = {
-            cls: {mk: float(mv) for mk, mv in mv_dict.items()}
-            for cls, mv_dict in metrics["per_class"].items()
-        }
-    with open(metrics_path, "w") as f:
-        json.dump(serializable, f, indent=2)
-    console.print(f"\n✓ Metrics saved to [bold]{metrics_path}[/bold]")
+    finalize_metrics(str(cfg.model.name), metrics, Path(cfg.evaluation.output_dir))
 
 
 def main() -> None:
     """Run the training CLI entrypoint."""
-    seed_everything(42)  # Set a fixed seed for reproducibility
     train_and_evaluate()
 
 

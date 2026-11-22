@@ -27,6 +27,7 @@ training:
   workers: 4 # Number of workers for data loading
   use_augmentation: true # Uses default augmentation pipeline from YOLOv5 repo, can be modified in the future if needed
   device: "cuda"  # or "cpu" if you want to train on CPU for whatever reason
+  seed: 0 # Ultralytics train(seed=...); 0 is its default and what the published runs used
   # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
   # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
   resume: null
@@ -37,11 +38,6 @@ evaluation:
   model: ${model.name} # Model architecture for evaluation (should match the training model)
   num_classes: ${model.num_classes} # Number of classes in the dataset (should match the training model)
   dataset_yaml: ${training.dataset_yaml} # Path to the dataset configuration file
-  batch_size: ${training.batch_size} # Batch size for evaluation
-  num_workers: ${training.workers} # Number of workers for data loading during evaluation
-  score_threshold: 0.05 # Confidence score threshold for predictions
-  iou_threshold: 0.5 # IoU threshold for Non-Maximum Suppression (NMS)
-  soft_nms: false # Use Soft-NMS instead of standard NMS
   split: ${dataset.eval_split} # Which split to evaluate on (most datasets: test; some have no test labels, e.g. seadronessee: valid)
   device: ${training.device} # or "cpu" if you want to evaluate on CPU for whatever reason
   output_dir: ${training.output_dir}/${model.name}/evaluation # Directory to save evaluation results
