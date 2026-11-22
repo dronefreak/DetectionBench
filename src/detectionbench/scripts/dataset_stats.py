@@ -22,10 +22,10 @@ dataset, pass ``--name`` plus any of ``--description``/``--citation``/
 to show are simply omitted).
 
 Usage:
-  python -m detectionbench.scripts.dataset_stats \\
-      --coco-dir /path/to/uavdt_coco \\
-      --dataset uavdt \\
-      --output-dir docs/datasets/uavdt \\
+  python -m detectionbench.scripts.dataset_stats \
+      --coco-dir /path/to/uavdt_coco \
+      --dataset uavdt \
+      --output-dir docs/datasets/uavdt \
       --group-label sequence
 """
 

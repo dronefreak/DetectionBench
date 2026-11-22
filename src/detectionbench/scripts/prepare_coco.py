@@ -15,9 +15,9 @@ would be a sibling ``detectionbench-prepare-voc`` sharing the same
 ``--dataset``/``--raw-dir``/``--output-dir`` interface.
 
 Usage:
-  python -m detectionbench.scripts.prepare_coco \\
-      --dataset doclaynet \\
-      --raw-dir /path/to/DocLayNet_core \\
+  python -m detectionbench.scripts.prepare_coco \
+      --dataset doclaynet \
+      --raw-dir /path/to/DocLayNet_core \
       --output-dir /path/to/doclaynet_coco
 """
 

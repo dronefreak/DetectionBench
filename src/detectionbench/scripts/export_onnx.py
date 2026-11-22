@@ -11,9 +11,9 @@ dispatcher: both model families share one Hydra config schema
 infers it from `model.name`'s prefix when left at "auto").
 
 Usage:
-  detectionbench-export-onnx dataset=lisa model.name=yolo26n \\
-      export.checkpoint_path=experiments/lisa/yolo26n/weights/best.pt
-  detectionbench-export-onnx dataset=exdark model.name=rfdetr-nano \\
+  detectionbench-export-onnx dataset=lisa model.name=yolo26n \
+      export.checkpoint_path=experiments/lisa/yolo26n/yolo26n/weights/best.pt
+  detectionbench-export-onnx dataset=exdark model.name=rfdetr-nano \
       export.checkpoint_path=experiments/exdark/rfdetr-nano/checkpoint_best_total.pth
 """
 

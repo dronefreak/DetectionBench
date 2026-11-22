@@ -9,18 +9,19 @@ Supports Ultralytics YOLO / RT-DETR and RF-DETR inference on:
 Usage examples:
   # YOLO - image directory
   python -m detectionbench.scripts.inference \
-     --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n \
-     --dataset doclaynet --input yolo_dataset/images/test/ --output-dir inference/
+     --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt \
+     --model yolov8n --dataset doclaynet \
+     --input yolo_dataset/images/test/ --output-dir inference/
 
   # YOLO - video file
-  python -m detectionbench.scripts.inference \\
-     --checkpoint experiments/yolov8n/weights/best.pt \\
+  python -m detectionbench.scripts.inference \
+     --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt \
      --model yolov8n --dataset doclaynet --input video.mp4
 
   # RF-DETR - image directory
-  python -m detectionbench.scripts.inference \\
-     --checkpoint experiments/rfdetr-nano/checkpoint_best_total.pth \\
-     --model rfdetr-nano --dataset doclaynet \\
+  python -m detectionbench.scripts.inference \
+     --checkpoint experiments/doclaynet/rfdetr-nano/checkpoint_best_total.pth \
+     --model rfdetr-nano --dataset doclaynet \
      --input yolo_dataset_coco/test/ --output-dir inference/
 """
 
