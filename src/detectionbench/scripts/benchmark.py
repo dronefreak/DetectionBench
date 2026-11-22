@@ -17,24 +17,33 @@ Works for all registered model families:
   YOLO / RT-DETR  → Ultralytics engine (model.info() for FLOPs)
   RF-DETR         → thop (profile)
 
+Input size: YOLO / RT-DETR default to 640. RF-DETR defaults to the resolution
+the checkpoint was trained at (``training_config.json`` next to it), else the
+model family default (nano 384, small 512, medium 576, large 704); ``--imgsz``
+overrides either.
+
 Usage:
-  # Benchmark a pretrained checkpoint
-  python scripts/benchmark.py \
+  # Benchmark a trained checkpoint
+  detectionbench-benchmark \
       --model yolov8n \
-      --checkpoint outputs/yolov8n/weights/best.pt \
+      --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt \
       --imgsz 640 --batch-size 1 --iterations 200 --device cuda
 
-  # Benchmark without a checkpoint (random weights, useful for architecture comparison)
-  python scripts/benchmark.py --model yolov8x --imgsz 640 --no-checkpoint
+  # RF-DETR needs --dataset (sets the class-head size)
+  detectionbench-benchmark --model rfdetr-nano --dataset doclaynet \
+      --checkpoint experiments/doclaynet/rfdetr-nano/checkpoint_best_total.pth
+
+  # Benchmark without a checkpoint (pretrained weights, for architecture comparison)
+  detectionbench-benchmark --model yolov8x --no-checkpoint
 
   # Compare several models (pipe-friendly JSON output)
   for m in yolov8n yolov8x yolo11x; do
-    python scripts/benchmark.py --model $m
+    detectionbench-benchmark --model $m \
         --no-checkpoint --json-out benchmarks/${m}.json
   done
 
   # Full summary with architecture table
-  python scripts/benchmark.py --model yolov8n --no-checkpoint --summary
+  detectionbench-benchmark --model yolov8n --no-checkpoint --summary
 """
 
 from __future__ import annotations
@@ -54,6 +63,14 @@ from rich.console import Console
 from rich.table import Table
 
 from detectionbench.datasets import get_spec, list_datasets
+from detectionbench.utils.rfdetr import (
+    RFDETR_MODEL_ALIASES,
+    RFDETR_MODEL_CLASS_MAP,
+    normalize_model_name,
+    read_training_resolution,
+)
+
+YOLO_DEFAULT_IMGSZ = 640
 
 console = Console()
 
@@ -290,6 +307,8 @@ def _measure_latency(
 
 def _benchmark_ultralytics(args, handle) -> dict[str, Any]:
     """Benchmark a YOLO or RT-DETR model."""
+    if args.imgsz is None:
+        args.imgsz = YOLO_DEFAULT_IMGSZ
     is_rtdetr = args.model.lower().startswith("rtdetr")
     ul_model: Any
     if is_rtdetr:
@@ -344,10 +363,13 @@ def _benchmark_rfdetr(args, handle) -> dict[str, Any]:
     except ImportError as err:
         raise ImportError("pip install rfdetr") from err
 
-    from detectionbench.utils.rfdetr import RFDETR_MODEL_CLASS_MAP
-
-    cls_name = RFDETR_MODEL_CLASS_MAP.get(args.model, "RFDETRLarge")
-    model_cls = getattr(_rfdetr_pkg, cls_name)
+    canonical = normalize_model_name(args.model)
+    if canonical not in RFDETR_MODEL_CLASS_MAP:
+        supported = ", ".join(sorted(RFDETR_MODEL_CLASS_MAP))
+        raise ValueError(
+            f"Unknown RF-DETR model '{args.model}'. Supported: {supported}."
+        )
+    model_cls = getattr(_rfdetr_pkg, RFDETR_MODEL_CLASS_MAP[canonical])
 
     device = torch.device(args.device)
     console.print("[dim]Loading RF-DETR model...[/dim]")
@@ -359,9 +381,17 @@ def _benchmark_rfdetr(args, handle) -> dict[str, Any]:
         "num_classes": spec.num_classes,
         "device": str(device),
     }
-    if args.checkpoint and not args.no_checkpoint:
+    use_checkpoint = bool(args.checkpoint) and not args.no_checkpoint
+    if use_checkpoint:
         kwargs["pretrain_weights"] = args.checkpoint
+    resolution = args.imgsz or (
+        read_training_resolution(args.checkpoint) if use_checkpoint else None
+    )
+    if resolution is not None:
+        kwargs["resolution"] = int(resolution)
     rf_model = model_cls(**kwargs)
+    # Benchmark at the resolution the model was actually built for.
+    args.imgsz = int(rf_model.model_config.resolution)
 
     rf_model.optimize_for_inference()
     inner = rf_model.model.model
@@ -530,7 +560,11 @@ def parse_args() -> argparse.Namespace:
         "YOLO, random for others).",
     )
     parser.add_argument(
-        "--imgsz", type=int, default=640, help="Input image size (square)"
+        "--imgsz",
+        type=int,
+        default=None,
+        help="Input image size (square). Default: 640 for YOLO/RT-DETR; for "
+        "RF-DETR the checkpoint's training resolution, else the family default.",
     )
     parser.add_argument(
         "--batch-size", type=int, default=1, help="Batch size for latency measurement"
@@ -569,7 +603,8 @@ def main() -> None:
     console.print("\n[bold cyan]DetectionBench Model Benchmark[/bold cyan]")
     console.print(f"  Model     : [bold]{args.model}[/bold]")
     console.print(f"  Device    : {args.device}")
-    console.print(f"  Image size: {args.imgsz}×{args.imgsz}   Batch: {args.batch_size}")
+    size = f"{args.imgsz}×{args.imgsz}" if args.imgsz else "auto"
+    console.print(f"  Image size: {size}   Batch: {args.batch_size}")
     console.print(f"  Iterations: {args.iterations}  Warmup: {args.warmup}\n")
 
     # Initialise GPU monitor (best-effort)
@@ -584,7 +619,7 @@ def main() -> None:
     name = args.model.lower()
     if name.startswith(("yolo", "rtdetr")):
         result = _benchmark_ultralytics(args, handle)
-    elif name.startswith("rfdetr"):
+    elif name.startswith("rfdetr") or name in RFDETR_MODEL_ALIASES:
         result = _benchmark_rfdetr(args, handle)
     else:
         raise ValueError(
