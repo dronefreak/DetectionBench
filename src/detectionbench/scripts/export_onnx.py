@@ -36,9 +36,11 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 
 from detectionbench.utils.rfdetr import (
+    RFDETR_MODEL_ALIASES,
     build_model_kwargs,
     load_rfdetr_model_class,
     normalize_model_name as normalize_rfdetr_model_name,
+    read_training_resolution,
     resolve_path,
 )
 from detectionbench.utils.utils import RichConsoleManager
@@ -75,8 +77,14 @@ def disable_bicubic_antialias_during_export() -> Any:
         yield
 
 
-def resolve_imgsz(imgsz_value: Any) -> int | tuple[int, int]:
-    """Normalize Hydra imgsz input into Ultralytics/RF-DETR export dimensions."""
+def resolve_imgsz(imgsz_value: Any) -> int | tuple[int, int] | None:
+    """
+    Normalize Hydra imgsz input into Ultralytics/RF-DETR export dimensions.
+
+    None means "use the size the checkpoint was trained at" (see the callers).
+    """
+    if imgsz_value is None:
+        return None
     if isinstance(imgsz_value, int):
         return imgsz_value
     if isinstance(imgsz_value, Sequence) and not isinstance(imgsz_value, (str, bytes)):
@@ -103,7 +111,7 @@ def infer_model_family(model_name: str) -> str:
     normalized = model_name.strip().lower()
     if normalized.startswith(ULTRALYTICS_PREFIXES):
         return "ultralytics"
-    if normalized.startswith(RFDETR_PREFIX):
+    if normalized.startswith(RFDETR_PREFIX) or normalized in RFDETR_MODEL_ALIASES:
         return "rfdetr"
     raise ValueError(
         f"Could not infer model family from '{model_name}'. "
@@ -248,7 +256,6 @@ def export_ultralytics_onnx(cfg: DictConfig, output_dir: Path) -> ExportResult:
 
     export_kwargs: dict[str, Any] = {
         "format": "onnx",
-        "imgsz": imgsz,
         "batch": int(cfg.export.batch),
         "dynamic": bool(cfg.export.dynamic),
         "simplify": bool(cfg.export.simplify),
@@ -257,6 +264,8 @@ def export_ultralytics_onnx(cfg: DictConfig, output_dir: Path) -> ExportResult:
         "device": cfg.export.device,
         "opset": int(cfg.export.opset),
     }
+    if imgsz is not None:  # else Ultralytics uses the checkpoint's training imgsz
+        export_kwargs["imgsz"] = imgsz
     if cfg.export.end2end is not None:
         export_kwargs["end2end"] = bool(cfg.export.end2end)
 
@@ -283,8 +292,14 @@ def export_rfdetr_onnx(cfg: DictConfig, output_dir: Path) -> ExportResult:
     elif not cfg.model.pretrain_weights:
         model_kwargs.pop("num_classes", None)
 
-    shape = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
+    if "resolution" not in model_kwargs:
+        trained_resolution = read_training_resolution(checkpoint_path)
+        if trained_resolution is not None:
+            model_kwargs["resolution"] = trained_resolution
     model = model_class(**model_kwargs)
+    if imgsz is None:  # export at the resolution the model was built with
+        imgsz = int(model.model_config.resolution)
+    shape = (imgsz, imgsz) if isinstance(imgsz, int) else imgsz
     exported_path = export_rfdetr_model_to_onnx(
         wrapper=model,
         output_dir=output_dir,
