@@ -41,6 +41,7 @@ from detectionbench.utils.rfdetr import (
     RFDETR_MODEL_CLASS_MAP,
     load_rfdetr_model_class,
     normalize_model_name,
+    read_training_resolution,
 )
 from detectionbench.utils.utils import RichConsoleManager
 
@@ -58,7 +59,7 @@ class InferenceOptions:
     score_threshold: float
     nms_threshold: float
     device: str
-    imgsz: int
+    imgsz: int | None
     save_viz: bool
     show: bool
     class_names: list[str]
@@ -109,7 +110,11 @@ def parse_args() -> argparse.Namespace:
         help="Number of classes (defaults to the full class count for --dataset)",
     )
     parser.add_argument(
-        "--imgsz", type=int, default=1280, help="Inference image size (YOLO only)"
+        "--imgsz",
+        type=int,
+        default=None,
+        help="Inference image size (YOLO only; default: the size the checkpoint "
+        "was trained at)",
     )
 
     # Input  (images / directory / video file)
@@ -151,81 +156,102 @@ def parse_args() -> argparse.Namespace:
 # ---------------------------------------------------------------------------
 
 
-def run_yolo(options: InferenceOptions) -> None:
-    """Run YOLO inference with custom visualization."""
+def _load_ultralytics_model(options: InferenceOptions) -> Any:
+    """Load a YOLO checkpoint, or an RT-DETR one with Ultralytics' RTDETR class."""
     try:
         from ultralytics import YOLO as UltralyticsYOLO
     except ImportError as err:
         raise ImportError("pip install ultralytics>=8.0.0") from err
 
-    # RT-DETR checkpoints must be loaded with the RTDETR class
-    model: Any
     if options.model_name.lower().startswith("rtdetr"):
         try:
             from ultralytics import RTDETR
         except ImportError as err:
             raise ImportError("pip install -U ultralytics") from err
-        model = RTDETR(str(options.checkpoint_path))
-    else:
-        model = UltralyticsYOLO(str(options.checkpoint_path))
+        return RTDETR(str(options.checkpoint_path))
+    return UltralyticsYOLO(str(options.checkpoint_path))
+
+
+def _annotate_yolo_result(
+    result: Any, options: InferenceOptions
+) -> tuple[np.ndarray, int]:
+    """Draw one Ultralytics result's boxes on its frame; return (frame, n_boxes)."""
+    frame = result.orig_img.copy()
+    box_data = result.boxes
+    if box_data is None or not len(box_data):
+        return frame, 0
+    viz = draw_detections(
+        frame,
+        DetectionOverlay(
+            boxes=_to_numpy_array(box_data.xyxy),
+            scores=_to_numpy_array(box_data.conf),
+            labels=_to_numpy_array(box_data.cls).astype(int),
+            class_names=options.class_names,
+            class_colors=options.class_colors,
+        ),
+    )
+    return viz, len(box_data)
+
+
+def run_yolo(options: InferenceOptions) -> None:
+    """Run YOLO inference with custom visualization."""
+    model = _load_ultralytics_model(options)
 
     options.output_dir.mkdir(parents=True, exist_ok=True)
     console = RichConsoleManager.get_console()
 
     console.print(f"Running YOLO inference on {options.input_path} ...")
 
-    results = model.predict(
-        source=str(options.input_path),
-        conf=options.score_threshold,
-        iou=options.nms_threshold,
-        device=options.device,
-        imgsz=options.imgsz,
-        save=False,
-        verbose=True,
-    )
+    predict_kwargs: dict[str, Any] = {
+        "source": str(options.input_path),
+        "conf": options.score_threshold,
+        "iou": options.nms_threshold,
+        "device": options.device,
+        "save": False,
+        "verbose": True,
+        # Stream results one frame at a time instead of holding a whole
+        # video's (or directory's) results in memory.
+        "stream": True,
+    }
+    if options.imgsz is not None:  # else the checkpoint's own training imgsz
+        predict_kwargs["imgsz"] = options.imgsz
+    results = model.predict(**predict_kwargs)
 
+    is_video = options.input_path.suffix.lower() in VIDEO_EXTENSIONS
+    writer = None
     total_det = 0
+    num_results = 0
 
-    for result in results:
-        if result.boxes is None:
-            continue
+    try:
+        for result in results:
+            num_results += 1
+            viz, n_boxes = _annotate_yolo_result(result, options)
+            total_det += n_boxes
 
-        box_data = result.boxes
-        total_det += len(box_data)
+            if options.save_viz:
+                if is_video:
+                    # One annotated video, not one JPEG per frame (which would
+                    # all share the video's stem and overwrite each other).
+                    if writer is None:
+                        writer = _open_video_writer(options, viz.shape[1], viz.shape[0])
+                    writer.write(viz)
+                else:
+                    out_path = options.output_dir / f"{Path(result.path).stem}_pred.jpg"
+                    cv2.imwrite(str(out_path), viz)
 
-        # Original image (full resolution)
-        frame = result.orig_img.copy()
-
-        # Extract predictions
-        boxes = _to_numpy_array(box_data.xyxy)
-        scores = _to_numpy_array(box_data.conf)
-        labels = _to_numpy_array(box_data.cls).astype(int)
-
-        viz = draw_detections(
-            frame,
-            DetectionOverlay(
-                boxes=boxes,
-                scores=scores,
-                labels=labels,
-                class_names=options.class_names,
-                class_colors=options.class_colors,
-            ),
-        )
-
-        if options.save_viz:
-            image_path = Path(result.path)
-            out_path = options.output_dir / f"{image_path.stem}_pred.jpg"
-            cv2.imwrite(str(out_path), viz)
-
-        if options.show:
-            cv2.imshow("YOLO Inference", viz)
-            if cv2.waitKey(0) == ord("q"):
-                break
+            if options.show:
+                cv2.imshow("YOLO Inference", viz)
+                if cv2.waitKey(1 if is_video else 0) == ord("q"):
+                    break
+    finally:
+        if writer is not None:
+            writer.release()
 
     if options.show:
         cv2.destroyAllWindows()
 
-    console.print(f"\n Processed {len(results)} image(s)")
+    unit = "frame(s)" if is_video else "image(s)"
+    console.print(f"\n Processed {num_results} {unit}")
     console.print(f"Total detections: {total_det}")
     console.print(f"Results saved to: {options.output_dir}")
 
@@ -235,17 +261,54 @@ def run_yolo(options: InferenceOptions) -> None:
 # ---------------------------------------------------------------------------
 
 
+DEFAULT_VIDEO_FPS = 25.0
+
+
+def _video_fps(cap: cv2.VideoCapture) -> float:
+    """Return the capture's frame rate, or 25 when OpenCV can't tell (0 or -1)."""
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    return fps if fps and fps > 0 else DEFAULT_VIDEO_FPS
+
+
+def _open_video_writer(
+    options: InferenceOptions, frame_w: int, frame_h: int, fps: float | None = None
+) -> cv2.VideoWriter:
+    """Open ``<output_dir>/<input stem>_pred.mp4`` at the input video's frame rate."""
+    if fps is None:
+        cap = cv2.VideoCapture(str(options.input_path))
+        fps = _video_fps(cap)
+        cap.release()
+    out_path = options.output_dir / f"{options.input_path.stem}_pred.mp4"
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
+    writer = cv2.VideoWriter(str(out_path), fourcc, fps, (frame_w, frame_h))
+    if not writer.isOpened():
+        raise RuntimeError(f"Could not open video writer for {out_path}")
+    return writer
+
+
 def run_rfdetr(options: InferenceOptions) -> None:
     """Run RF-DETR inference with custom visualization."""
+    console = RichConsoleManager.get_console()
     model_class = load_rfdetr_model_class(options.model_name)
-    model = model_class(
-        num_classes=len(options.class_names),
-        pretrain_weights=str(options.checkpoint_path),
-        device=options.device,
-    )
+    model_kwargs: dict[str, Any] = {
+        "num_classes": len(options.class_names),
+        "pretrain_weights": str(options.checkpoint_path),
+        "device": options.device,
+    }
+    # Like evaluation: run at the resolution the checkpoint was trained at
+    # (recorded in training_config.json next to it), not the family default.
+    resolution = read_training_resolution(str(options.checkpoint_path))
+    if resolution is not None:
+        model_kwargs["resolution"] = resolution
+        console.print(f"  Resolution: {resolution} (from training_config.json)")
+    else:
+        console.print(
+            "[yellow]No training_config.json next to the checkpoint; using the "
+            "model family's default resolution.[/yellow]"
+        )
+    model = model_class(**model_kwargs)
 
     options.output_dir.mkdir(parents=True, exist_ok=True)
-    console = RichConsoleManager.get_console()
     console.print(f"Running RF-DETR inference on {options.input_path} ...")
 
     if options.input_path.is_dir():
@@ -320,15 +383,12 @@ def _run_rfdetr_on_video(model: Any, options: InferenceOptions) -> tuple[int, in
     if not cap.isOpened():
         raise FileNotFoundError(f"Could not open video: {options.input_path}")
 
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
     frame_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     writer = None
     if options.save_viz:
-        out_path = options.output_dir / f"{options.input_path.stem}_pred.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
-        writer = cv2.VideoWriter(str(out_path), fourcc, fps, (frame_w, frame_h))
+        writer = _open_video_writer(options, frame_w, frame_h, fps=_video_fps(cap))
 
     total_det = 0
     num_frames = 0
