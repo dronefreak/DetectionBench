@@ -1,5 +1,7 @@
 # KITTI: Dataset Statistics
 
+![KITTI sample images](kitti_banner.jpg)
+
 ## About
 
 KITTI is a foundational autonomous-driving benchmark: street scenes captured from a moving vehicle in and around Karlsruhe, Germany, annotated for 2D object detection across 8 classes (Car, Cyclist, Misc, Pedestrian, Person_sitting, Tram, Truck, Van). Only the officially labelled 7,481 images are usable (test-set boxes are not public); this adapter splits them train/valid using the Chen et al. (2015) 3712/3769 split, the de facto standard used across the KITTI detection literature.

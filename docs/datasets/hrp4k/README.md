@@ -1,5 +1,7 @@
 # HRP4K: Dataset Statistics
 
+![HRP4K sample images](hrp4k_banner.jpg)
+
 ## About
 
 HRP4K (High-Resolution Pothole 4K) is a perspective-view road pothole-detection benchmark: 4,086 usable high-resolution road images (per this adapter's on-disk counts -- see module docstring for a known upstream train-split completeness gap) with 4,748 pothole instances, captured for automated road-condition assessment. It is a single-class, dense-detection style benchmark similar in spirit to RDD2022's pothole class, but pothole-specific and at much higher image resolution.
