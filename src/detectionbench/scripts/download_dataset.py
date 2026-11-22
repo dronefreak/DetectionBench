@@ -275,7 +275,9 @@ def print_source_overview(source: DatasetSource) -> None:
             console.print(f"     [dim]{option.note}[/dim]")
 
 
-def print_manual_instructions(option: DownloadOption, output_dir: Path) -> None:
+def print_manual_instructions(
+    option: DownloadOption, output_dir: Path, dataset_key: str
+) -> None:
     """Print step-by-step manual download instructions for one option."""
     console = RichConsoleManager.get_console()
     console.print(f"\n[bold]Manual download -- {option.label}[/bold]")
@@ -294,7 +296,7 @@ def print_manual_instructions(option: DownloadOption, output_dir: Path) -> None:
     console.print(f"  4. Place the extracted contents under: {output_dir}")
     console.print(
         "  5. Then run: detectionbench-prepare-coco --dataset "
-        f"<key> --raw-dir {output_dir} --output-dir <coco_out>"
+        f"{dataset_key} --raw-dir {output_dir} --output-dir <coco_out>"
     )
 
 
@@ -339,6 +341,7 @@ def try_direct_download(option: DownloadOption, output_dir: Path) -> bool:
         with urllib.request.urlopen(option.url) as response, dest.open("wb") as out:  # noqa: S310  # nosec: B310
             shutil.copyfileobj(response, out)
     except Exception as exc:  # noqa: BLE001 -- surface any failure, then fall back
+        dest.unlink(missing_ok=True)  # don't leave a truncated archive behind
         console.print(f"[yellow]Direct download failed: {exc}[/yellow]")
         return False
     console.print(f"[bold green]Downloaded:[/bold green] {dest}")
@@ -364,6 +367,11 @@ def main() -> None:
 
     wanted_methods = _AUTOMATABLE_METHODS if args.method == "auto" else (args.method,)
     automatable = [o for o in source.options if o.method in wanted_methods]
+    if args.method in _AUTOMATABLE_METHODS and not automatable:
+        raise SystemExit(
+            f"'{args.dataset}' has no {args.method} download option. Use "
+            "--method auto or --method manual (see the options listed above)."
+        )
     if args.method != "manual" and automatable:
         primary = automatable[0]
         downloader = (
@@ -382,7 +390,7 @@ def main() -> None:
             )
 
     for option in source.options:
-        print_manual_instructions(option, output_dir)
+        print_manual_instructions(option, output_dir, source.key)
 
 
 if __name__ == "__main__":
