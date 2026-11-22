@@ -27,6 +27,16 @@ the training/evaluation scripts themselves.
    pre-commit install
    ```
 
+4. Run the test suite (CPU-only, no datasets or GPU needed, about a minute):
+
+   ```bash
+   pytest -q
+   ```
+
+   If a system-wide `PYTHONPATH` injects foreign pytest plugins (e.g. ROS's
+   `launch_testing`, which fails with `No module named 'lark'`), run it with
+   that unset: `env -u PYTHONPATH pytest -q`.
+
 ## Making Changes
 
 - Create a feature branch off `main`: `git checkout -b feature/my-change`.

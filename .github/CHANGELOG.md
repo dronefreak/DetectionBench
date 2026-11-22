@@ -20,7 +20,8 @@ and this project adheres to **Semantic Versioning**.
 
 ### Changed
 
-* N/A
+* YOLO configs pin `training.seed: 0`, forwarded to Ultralytics `train(seed=...)` and `seed_everything` (previously a hard-coded 42 that Ultralytics overrode with its own 0)
+* `evaluate_yolo` `--score-threshold` / `--iou-threshold` / `--batch-size` / `--num-workers` now reach `model.val()`; unset keeps Ultralytics defaults, matching published numbers
 
 ### Deprecated
 
@@ -28,11 +29,16 @@ and this project adheres to **Semantic Versioning**.
 
 ### Removed
 
-* N/A
+* Unused `evaluation.{batch_size,num_workers,score_threshold,iou_threshold,soft_nms}` keys from YOLO configs
+* `detectionbench-generate-model-cards` / `detectionbench-generate-readme-leaderboard` console scripts (maintainer-only tools, not shipped in the repo)
 
 ### Fixed
 
-* N/A
+* YOLO training printed the whole model config as the results-table title
+* `rfdetr_evaluate.yaml` ignored `dataset.eval_split`; RF-DETR eval now maps `val` to the canonical `valid/` dir (SeaDronesSee)
+* `detectionbench-convert-coco-to-yolo` warns on missing images and writes `data.yaml` via `yaml.safe_dump`
+* `--help` usage examples printed `\\` line continuations
+* mypy errors in `generate_model_cards.py`
 
 ### Security
 

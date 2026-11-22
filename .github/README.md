@@ -34,11 +34,11 @@
 
 Modern object detection research is overwhelmingly evaluated on a small number of canonical datasets such as COCO. In practice, computer vision systems are deployed in domains — aerial robotics, maritime search and rescue, agriculture, underwater inspection, autonomous driving, document understanding — where datasets are smaller, more specialized, and benchmark results are hard to compare.
 
-DetectionBench is a Hydra-driven framework for preparing those datasets, training models, evaluating performance, and benchmarking modern object detectors under standardized conditions: common dataset adapters, reproducible training recipes, identical evaluation protocols, and unified hardware profiling, so detectors can be compared fairly across application domains.
+DetectionBench is a Hydra-driven framework for preparing those datasets, training models, evaluating performance, and benchmarking modern object detectors under standardized conditions: common dataset adapters, reproducible training recipes, a fixed evaluation protocol per model family, and unified hardware profiling, so detectors can be compared fairly across application domains.
 
 ## Supported Models
 
-DetectionBench wraps two model families behind one CLI, trained and evaluated with identical recipes (same augmentation, early stopping, and metrics) regardless of family:
+DetectionBench wraps two model families behind one CLI, with shared dataset splits, configs, and entrypoints:
 
 | Family | Backend | Example checkpoints | Entrypoints |
 | --- | --- | --- | --- |
@@ -47,6 +47,8 @@ DetectionBench wraps two model families behind one CLI, trained and evaluated wi
 | **RF-DETR** | Roboflow `rfdetr` | `rfdetr-nano`, `rfdetr-small`, `rfdetr-medium`, `rfdetr-large` | `detectionbench-train`, `detectionbench-evaluate`, `detectionbench-infer` |
 
 Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box — the YOLO family isn't a fixed enum, `YOLOTrainer` passes the name straight through to Ultralytics. `detectionbench-train` and `detectionbench-evaluate` are each one command for every family: both inspect `model.name=` / `--model` and dispatch to the Ultralytics or RF-DETR path automatically, so a new checkpoint name (or RF-DETR size) never needs a new entrypoint. Every model, regardless of family, also gets hardware profiling (latency, FPS, VRAM, parameters, FLOPs) via `detectionbench-benchmark` and per-class metrics via `detectionbench-evaluate`.
+
+> **Comparing across families.** Recipes are per dataset *and* per family (`configs/<dataset>_yolo.yaml` vs `configs/<dataset>_rfdetr.yaml` differ in resolution, batch size, LR and augmentation). Metrics also come from each family's own evaluator: Ultralytics' validator for YOLO / RT-DETR (default `conf=0.001`, `iou=0.7`) and `supervision`'s `MeanAveragePrecision` for RF-DETR (all queries, `threshold=0.0`). Both are COCO-style mAP@0.5:0.95 on the same split, but small differences in interpolation and matching mean cross-family gaps of a fraction of a point should not be over-read. Precision/recall are reported at each evaluator's best-F1 confidence.
 
 ## Supported Datasets
 
@@ -61,7 +63,7 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 | **VisDrone-DET** | Object Detection | Aerial / UAV Surveillance | 11 | 8,629 [^3] | CC BY-NC-SA 3.0 | [Hugging Face](https://huggingface.co/datasets/Voxel51/VisDrone2019-DET) |
 | **GC10-DET** | Object Detection | Industrial / Metallic Surface Defect | 10 | 2,300 [^4] | CC BY 4.0 | [GitHub](https://github.com/lvxiaoming2019/GC10-DET-Metallic-Surface-Defect-Datasets) |
 | **RDD2022** | Object Detection | Road Infrastructure / Pavement Damage | 4 | 38,385 [^5] | CC BY-SA 4.0 | [GitHub](https://github.com/sekilab/RoadDamageDetector) |
-| **BDD100K 2018** | Object Detection | Autonomous Driving | 10 | 79,863 [^16] | BDD100K Data License (non-commercial redistribution permitted) [^16] | [Hugging Face](https://huggingface.co/datasets/dronefreak/BDD100K) |
+| **BDD100K 2018** | Object Detection | Autonomous Driving | 10 | 100,000 [^16] | BDD100K Data License (non-commercial redistribution permitted) [^16] | [Hugging Face](https://huggingface.co/datasets/dronefreak/BDD100K) |
 | **HRP4K** | Object Detection | Road Infrastructure / Pothole Detection | 1 | 4,086 [^17] | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/HRP4K) |
 | **PKLot** | Object Detection | Smart Parking / Occupancy Detection | 2 | 12,416 [^18] | CC BY 4.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/PKLot) |
 | **KITTI** | Object Detection | Autonomous Driving | 8 | 7,481 [^19] | CC BY-NC-SA 3.0 | [Hugging Face](https://huggingface.co/datasets/dronefreak/KITTI) |
@@ -93,7 +95,7 @@ Any Ultralytics-registered YOLO or RT-DETR checkpoint name works out of the box 
 [^13]: MARIDA is natively **weakly-supervised semantic segmentation** (per-pixel classification masks over Sentinel-2 imagery), not detection — this adapter converts it via connected-component extraction on the mask (8-connectivity, components < 4px dropped), and renders a derived true-color-ish RGB image from the raw 11-band reflectance (bands B04/B03/B02) since the source has no natural RGB. Splits: train 694 / valid 328 / test 359 (1,533 / 713 / 746 boxes) — the official patch-id lists, used as-is. 15 classes preserved from the source taxonomy (Marine Debris, Sargassum, Ship, Foam, Wakes, plus several water/cloud "context" classes that produce larger, sparser boxes since they describe extended surface phenomena, not compact objects).
 [^14]: No license stated anywhere — citation-requested only, no redistribution grant — **no** Hugging Face mirror. No official split; the adapter applies a deterministic seeded 80/10/10 split (same approach as GC10-DET). Verified against a real download: train 1,440 / valid 180 / test 180 images (1,800 total, exact match to the official release), 3,351 / 396 / 442 boxes respectively. Get the raw data via `detectionbench-download-dataset --dataset neudet` (Google Drive + Baidu Netdisk links).
 [^15]: The official repo has an explicit Apache-2.0 `LICENSE` (confirmed via GitHub's own license detection) — a real grant, unlike HRSID's software-only GPL-3.0. However SSDD's imagery is composited from RadarSat-2, TerraSAR-X, and Sentinel-1 — the same second-order TerraSAR-X/TanDEM-X (DLR, scientific-use) sensor-rights caveat as HRSID applies; see the dataset card for the full explanation. Splits: train 789 / valid 139 / test 232 (1,756 / 285 / 546 boxes) — official train/test kept, seeded 15% validation slice carved from train.
-[^16]: BDD100K's own data license permits redistribution for educational, research and not-for-profit purposes with notice (commercial use needs separate permission from UC Berkeley's Office of Technology Licensing) — mirrored at [dronefreak/BDD100K](https://huggingface.co/datasets/dronefreak/BDD100K), whose card reproduces the license in full and explains the two-hop Kaggle provenance. The labels are BDD100K's original 2018 release, not a later-dated revision — see the dataset card. The official test split has no released labels, so the "test" split trained/evaluated on here is BDD100K's official validation set (10,000 images), and a seeded 15% slice of the official train set is held out for validation instead. Splits: train 59,384 / valid 10,479 / test 10,000.
+[^16]: BDD100K's own data license permits redistribution for educational, research and not-for-profit purposes with notice (commercial use needs separate permission from UC Berkeley's Office of Technology Licensing) — mirrored at [dronefreak/BDD100K](https://huggingface.co/datasets/dronefreak/BDD100K), whose card reproduces the license in full and explains the two-hop Kaggle provenance. The labels are BDD100K's original 2018 release, not a later-dated revision — see the dataset card. All three official splits ship with real labels in the Berkeley release and are used as-is: train 70,000 / valid 10,000 (official `val`) / test 20,000.
 [^17]: The official Zenodo release's `train.json` references 4,203 training images, but the archive itself only actually ships 2,286 of them (`valid`/`test` are complete) — confirmed against Zenodo's own file listing, not a corrupted download. This adapter filters to the images that actually exist on disk, so the total here (4,086) is smaller than the officially announced 6,003.
 [^18]: PKLot has no official split, and its images are time-lapse captures from 3 fixed cameras (`PUCPR`, `UFPR04`, `UFPR05`); this adapter groups by (lot, capture day) so no capture day spans two splits — validation/test measure generalization to unseen days on *seen* cameras, not to new camera positions.
 [^19]: KITTI's official test images have never had public ground truth, so this adapter (following the field-standard Chen et al. 2015 3DOP split) uses train (3,712) / valid (3,769) only — "valid" is both the early-stopping signal and the split all reported metrics are computed on.
@@ -144,12 +146,17 @@ Best model per dataset from DetectionBench's [v1 model shortlist](../ROADMAP.md)
 ## Installation
 
 ```bash
+git clone https://github.com/dronefreak/DetectionBench.git && cd DetectionBench
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"          # core + dev tooling
 pip install -e ".[rfdetr]"       # + RF-DETR training/eval
 pip install -e ".[coco]"         # + pycocotools
 pip install -e ".[benchmark]"    # + hardware-profiling extras (psutil, thop, fvcore, torchinfo, nvidia-ml-py)
 ```
+
+Install from a clone in editable mode (`-e`): the CLIs read their Hydra configs from the repo's `configs/` directory, so a plain `pip install` from a wheel will not find them.
+
+**Point the dataset configs at your data first.** Each `configs/dataset/<key>.yaml` holds two absolute paths from the author's machine — `dataset_yaml` (Ultralytics `data.yaml`, used by YOLO / RT-DETR) and `dataset_dir` (canonical COCO root, used by RF-DETR). Edit them, or override per run with `dataset.dataset_yaml=...` / `dataset.dataset_dir=...` (training) or `--dataset-yaml` / `--dataset-dir` (evaluation).
 
 ## Usage
 
@@ -168,9 +175,12 @@ detectionbench-train dataset=doclaynet model.name=rfdetr-nano
 # 4. Evaluate / infer / benchmark a checkpoint directly (--dataset-yaml is
 #    optional -- it auto-resolves from configs/dataset/<key>.yaml if omitted;
 #    the same command works unchanged for model=rfdetr-nano)
-detectionbench-evaluate --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet
-detectionbench-infer --checkpoint experiments/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet --input /path/to/images
-detectionbench-benchmark --model yolov8n --checkpoint experiments/yolov8n/weights/best.pt
+detectionbench-evaluate --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet
+detectionbench-infer --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt --model yolov8n --dataset doclaynet --input /path/to/images
+detectionbench-benchmark --model yolov8n --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt
+
+# Or let a training config supply dataset, checkpoint and output paths:
+detectionbench-evaluate --config-name visdrone_yolo --model yolov8n
 ```
 
 ## License
