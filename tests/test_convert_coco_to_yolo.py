@@ -75,3 +75,19 @@ def test_convert_split_hardlinks_images(tmp_path: Path) -> None:
     dst = output_dir / "images" / "train" / "img1.jpg"
     assert not dst.is_symlink()  # a real directory entry, valid after a move
     assert dst.samefile(src)  # same inode as the COCO copy: no extra disk
+
+
+def test_data_yaml_round_trips_awkward_class_names(tmp_path: Path) -> None:
+    import yaml
+
+    from detectionbench.utils.convert_coco_to_yolo import write_yaml
+
+    categories = [
+        {"id": 0, "name": "note: margin"},
+        {"id": 1, "name": "#1 sign"},
+    ]
+    write_yaml(categories, tmp_path)
+    data = yaml.safe_load((tmp_path / "data.yaml").read_text())
+    assert data["nc"] == 2
+    assert data["names"] == {0: "note: margin", 1: "#1 sign"}
+    assert data["val"] == "images/val"

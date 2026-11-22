@@ -34,19 +34,19 @@ Output directory layout produced:
   └── data.yaml   (Ultralytics dataset config; nc + class names from COCO categories)
 
 Usage:
-  python -m detectionbench.utils.convert_coco_to_yolo \\
+  python -m detectionbench.utils.convert_coco_to_yolo \
       --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset
 
   # Copy image bytes instead of symlinking (e.g. across filesystems)
-  python -m detectionbench.utils.convert_coco_to_yolo \\
-      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \\
+  python -m detectionbench.utils.convert_coco_to_yolo \
+      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \
       --copy-images
 
   # Hardlink image files (same filesystem): no extra disk, and the output tree
   # holds real file entries, so it can be tarred/rsynced to another machine
   # without dangling absolute symlinks. Falls back to a copy across filesystems.
-  python -m detectionbench.utils.convert_coco_to_yolo \\
-      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \\
+  python -m detectionbench.utils.convert_coco_to_yolo \
+      --input-dir /path/to/coco_dataset --output-dir /path/to/yolo_dataset \
       --hardlink-images
 """
 
@@ -58,6 +58,8 @@ import os
 import shutil
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from detectionbench.datasets.base import link_image
 
@@ -96,6 +98,23 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _materialize_image(
+    src: Path, dst: Path, copy_images: bool, hardlink_images: bool
+) -> bool:
+    """Place ``src`` at ``dst`` (symlink/hardlink/copy); False if ``src`` is missing."""
+    if dst.exists():
+        return True
+    if not src.exists():
+        return False
+    if copy_images:
+        shutil.copy2(src, dst)
+    elif hardlink_images:
+        link_image(src, dst)
+    else:
+        os.symlink(src, dst)
+    return True
+
+
 def convert_split(
     coco_split_dir: Path,
     output_dir: Path,
@@ -125,22 +144,20 @@ def convert_split(
     n_labels = 0
     n_boxes = 0
     n_skipped_bad_box = 0
+    n_missing_images = 0
 
     for img_id, img in img_by_id.items():
         file_name = img["file_name"]
         w, h = img["width"], img["height"]
 
-        src = coco_split_dir / file_name
-        dst = images_out / file_name
-        if not dst.exists():
-            if not src.exists():
-                continue
-            if copy_images:
-                shutil.copy2(src, dst)
-            elif hardlink_images:
-                link_image(src, dst)
-            else:
-                os.symlink(src, dst)
+        if not _materialize_image(
+            coco_split_dir / file_name,
+            images_out / file_name,
+            copy_images,
+            hardlink_images,
+        ):
+            n_missing_images += 1
+            continue
         n_images += 1
 
         lines = []
@@ -168,6 +185,12 @@ def convert_split(
         f"[{yolo_split}] images linked: {n_images}, label files: {n_labels}, "
         f"boxes: {n_boxes}, skipped bad boxes: {n_skipped_bad_box}"
     )
+    if n_missing_images:
+        print(
+            f"[WARN] [{yolo_split}] {n_missing_images} images listed in "
+            f"{annotation_path} were not found under {coco_split_dir} and were "
+            "skipped (no image or label written)."
+        )
     return categories
 
 
@@ -175,15 +198,17 @@ def write_yaml(categories: list[dict[str, Any]], output_dir: Path) -> None:
     """Write an Ultralytics dataset YAML describing the converted splits."""
     names = [c["name"] for c in sorted(categories, key=lambda c: c["id"])]
     yaml_path = output_dir / "data.yaml"
-    with open(yaml_path, "w") as f:
-        f.write(f"path: {output_dir}\n")
-        f.write("train: images/train\n")
-        f.write("val: images/val\n")
-        f.write("test: images/test\n")
-        f.write(f"nc: {len(names)}\n")
-        f.write("names:\n")
-        for i, name in enumerate(names):
-            f.write(f"  {i}: {name}\n")
+    data_yaml = {
+        "path": str(output_dir),
+        "train": "images/train",
+        "val": "images/val",
+        "test": "images/test",
+        "nc": len(names),
+        "names": dict(enumerate(names)),
+    }
+    # safe_dump quotes names that would otherwise break YAML (e.g. "a: b", "#1").
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(data_yaml, f, sort_keys=False, allow_unicode=True)
     print(f"Wrote {yaml_path}")
 
 
