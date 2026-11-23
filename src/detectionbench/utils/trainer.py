@@ -10,11 +10,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-# Ultralytics has no single "off" switch for train-time augmentation -- the
-# augmentation pipeline is the sum of these hyperparameters. Zeroing every
-# geometric/photometric knob and disabling the policy-based ones
-# (``auto_augment``, ``erasing``) is how you actually train without
-# augmentation; passed only when ``train(augment=False)``.
 # Ultralytics' ``build_optimizer`` matches optimizer names case-sensitively and
 # raises on anything unknown -- normalize the common lowercase spellings from
 # config.yaml to its canonical casing. Unrecognized values pass through so
@@ -30,6 +25,11 @@ _OPTIMIZER_ALIASES: dict[str, str] = {
     "rmsprop": "RMSProp",
 }
 
+# Ultralytics has no single "off" switch for train-time augmentation -- the
+# augmentation pipeline is the sum of these hyperparameters. Zeroing every
+# geometric/photometric knob and disabling the policy-based ones
+# (``auto_augment``, ``erasing``) is how you actually train without
+# augmentation; passed only when ``train(augment=False)``.
 _NO_AUGMENTATION_HYP: dict[str, Any] = {
     "hsv_h": 0.0,
     "hsv_s": 0.0,

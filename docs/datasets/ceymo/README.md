@@ -1,5 +1,7 @@
 # CeyMo: Dataset Statistics
 
+![CeyMo sample images](ceymo_banner.jpg)
+
 ## About
 
 CeyMo is a road-marking detection benchmark from Sri Lanka: 2,887 1920x1080 road images with 4,706 road-marking instances across 11 classes (arrows, pedestrian crossings, bus/cycle lanes, junction boxes, diamonds, and 'slow' markings), covering urban, sub-urban and rural roads, with a test set spanning normal, crowded, dazzle light, night, rain and shadow conditions. Road markings are flat, perspective-distorted ground-plane objects, unlike the upright vehicles and signs most driving benchmarks target.

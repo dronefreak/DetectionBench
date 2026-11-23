@@ -46,9 +46,9 @@ model was really trained at, including per-model ``model.resolution`` overrides)
 then from ``--resolution``/the config, then the model family default.
 
 Usage:
-  detectionbench-evaluate --model yolov8n --dataset lisa \\
-      --checkpoint experiments/lisa/yolov8n/weights/best.pt
-  detectionbench-evaluate --model rfdetr-nano --dataset lisa \\
+  detectionbench-evaluate --model yolov8n --dataset lisa \
+      --checkpoint experiments/lisa/yolov8n/yolov8n/weights/best.pt
+  detectionbench-evaluate --model rfdetr-nano --dataset lisa \
       --checkpoint experiments/lisa/rfdetr-nano/checkpoint_best_total.pth
 """
 
@@ -145,10 +145,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--score-threshold",
         type=float,
-        default=0.05,
-        help="Score threshold (YOLO/RT-DETR only -- RF-DETR always evaluates "
-        "at threshold=0.0 internally for a correct mAP curve; see module "
-        "docstring)",
+        default=None,
+        help="Confidence threshold (YOLO/RT-DETR only; default: Ultralytics' "
+        "0.001, as used for the leaderboards -- RF-DETR always evaluates at "
+        "threshold=0.0 internally for a correct mAP curve; see module docstring)",
     )
     parser.add_argument(
         "--save-predictions",
@@ -256,6 +256,7 @@ def _run_yolo(args: argparse.Namespace) -> None:
             output_dir=output_dir,
             save_predictions=args.save_predictions,
             split=args.split,
+            score_threshold=args.score_threshold,
         )
     )
     finalize_metrics(args.model, metrics, output_dir)

@@ -46,6 +46,7 @@ training:
   workers: 8
   use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
   device: "cuda"
+  seed: 0 # Ultralytics train(seed=...); 0 is its default and what the published runs used
   # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
   # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
   resume: null
@@ -62,11 +63,6 @@ evaluation:
   model: ${model.name}
   num_classes: ${model.num_classes}
   dataset_yaml: ${training.dataset_yaml}
-  batch_size: ${training.batch_size}
-  num_workers: ${training.workers}
-  score_threshold: 0.05
-  iou_threshold: 0.5
-  soft_nms: false
   split: ${dataset.eval_split}
   device: ${training.device}
   output_dir: ${training.output_dir}/${model.name}/evaluation

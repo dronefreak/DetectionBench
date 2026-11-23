@@ -21,7 +21,7 @@ export:
   checkpoint_path: null # Path to a trained checkpoint (.pt for Ultralytics, .pth for RF-DETR); null uses pretrained/default weights
   pretrained_ckpt_path: null # Fallback checkpoint path, used only when checkpoint_path is null
   output_dir: "experiments/${dataset.name}/${model.name}/export"
-  imgsz: 640 # int or [height, width]
+  imgsz: null # int or [height, width]; null = checkpoint training size (Ultralytics: saved imgsz; RF-DETR: training_config.json)
   batch: 1
   dynamic: false # Dynamic input shapes/axes
   simplify: true # Ultralytics only: run onnx-simplifier on the exported graph

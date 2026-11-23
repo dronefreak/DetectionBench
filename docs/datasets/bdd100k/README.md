@@ -1,5 +1,7 @@
 # BDD100K: Dataset Statistics
 
+![BDD100K sample images](bdd100k_banner.jpg)
+
 ## About
 
 BDD100K is a large-scale, diverse driving-video dataset; this adapter covers its 100K-image object-detection task: all 100,000 1280x720 dashcam images (70,000 train + 10,000 val + 20,000 test, all three officially released with real labels) annotated for 10 classes spanning vulnerable road users (person, rider), vehicles (car, truck, bus, train, motor, bike), and traffic control (traffic light, traffic sign), captured across diverse weather, time-of-day, and scene conditions in the US. It's used to benchmark multi-class driving-scene detection under real-world distribution shift.

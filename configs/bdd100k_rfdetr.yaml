@@ -1,23 +1,21 @@
-# bdd100k_rfdetr.yaml
-# BDD100K-specific Hydra config for RF-DETR. Use instead of rfdetr.yaml, one resolution per model size:
-#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-nano   model.resolution=576
-#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-small  model.resolution=640
-#   detectionbench-train --config-name bdd100k_rfdetr model.name=rfdetr-medium model.resolution=704
+# bdd100k_rfdetr.yaml (nano tier)
+# BDD100K-specific Hydra config for nano-tier RF-DETR. Siblings: bdd100k_rfdetr_small.yaml,
+# bdd100k_rfdetr_medium.yaml (same dataset/recipe, resolution + batch_size tuned per tier). Use:
+#   detectionbench-train --config-name bdd100k_rfdetr
 # Evaluation reads the resolution back from training_config.json (detectionbench-evaluate does this
 # automatically), so it will match training.
 #
 # Evaluate on the test split after training (RF-DETR training does not evaluate on its own). The config
 # supplies the dataset, checkpoint (experiments/bdd100k/<model>/checkpoint_best_total.pth) and output folder:
 #   detectionbench-evaluate --config-name bdd100k_rfdetr --model rfdetr-nano
-#   detectionbench-evaluate --config-name bdd100k_rfdetr --model rfdetr-small
-#   detectionbench-evaluate --config-name bdd100k_rfdetr --model rfdetr-medium
-# The resolution is taken from training_config.json next to the checkpoint (what the model was really trained
-# at, including the per-model overrides above); pass --resolution only if that file is missing.
-# The COCO folder comes from configs/dataset/bdd100k.yaml; on another machine add --dataset-dir <coco folder>.
+# The resolution is taken from training_config.json next to the checkpoint; pass --resolution only if that
+# file is missing. The COCO folder comes from configs/dataset/bdd100k.yaml; on another machine add
+# --dataset-dir <coco folder>.
 #
 # Why BDD100K needs its own settings (from docs/datasets/bdd100k/README.md + the converted COCO annotations):
-#   * Big and uniform: 59,384 train / 10,479 valid / 10,000 test images, all 1280x720, ~18 boxes/image (p99 47, max 91).
-#     At an effective batch of ~16 an epoch is ~3,700 steps, so ~30 epochs is already >100k steps.
+#   * Big and uniform: 70,000 train / 10,000 valid / 20,000 test images (the official Berkeley split -- all
+#     three now carry real labels, see src/detectionbench/datasets/bdd100k.py), all 1280x720. ~18 boxes/image
+#     (p99 47, max 91). At an effective batch of ~16 an epoch is ~4,400 steps, so ~30 epochs is >130k steps.
 #   * RF-DETR squares the frame (1280x720 -> R x R), so the median ~29 px box becomes ~29 * R / 960 px:
 #     at the family defaults (384 / 512 / 576) that is ~11 / ~15 / ~17 px, and traffic lights (~16 px native) fall to
 #     ~6.5 / ~8.7 / ~9.8 px. Resolutions 576 / 640 / 704 give ~17 / ~19 / ~21 px medians -- a modest bump, because
@@ -29,24 +27,39 @@
 # Everything here is a reasoned starting point, not a tuned result.
 # Mirrored on Hugging Face as `dronefreak/BDD100K`, in its raw as-provided
 # format (see configs/dataset/bdd100k.yaml).
+#
+# Nano-tier batch size @ resolution=576, AMP on (1-epoch real training runs against this exact dataset/GPU,
+# batch raised until CUDA OOM -- or until internal OOM-retry warnings appeared even on an otherwise-
+# "successful" run, which counts as unstable here -- with ~830-920MB already used by other processes):
+#     batch 8 -> 8.6 GB peak reserved (clean)      batch 10 -> 10.2 GB peak reserved (clean, thin margin)
+#     batch 9 -> 9.3 GB peak reserved (clean)       batch 11 -> hits CUDA OOM retries
+#   batch_size is pinned (not "auto") so a long unattended run can't have RF-DETR's auto-sizing misjudge
+#   headroom; 8 is two probe-steps under the clean ceiling (10), matching the margin policy used for the
+#   YOLO configs. grad_accum_steps=2 keeps the effective batch at exactly 16 (RF-DETR's tuned default),
+#   so learning_rate/learning_rate_encoder don't need to change.
+#   detectionbench-train --config-name bdd100k_rfdetr
+#     # Not independently measured on the full dataset -- the probe above used a small held-out subset,
+#     # sufficient for the VRAM ceiling but not for a precise img/s figure.
 
 defaults:
   - dataset: bdd100k
   - _self_
 
 model:
-  name: "rfdetr-small"
+  # Nano tier -- matches the near-term retraining plan (single consumer GPU, see header).
+  name: "rfdetr-nano"
   num_classes: ${dataset.num_classes}
   pretrain_weights: null
-  resolution: 640 # override per model size (see header); must be divisible by 64
+  resolution: 576 # family default is 384; bumped per header's box-size rationale. Must be divisible by 64
 
 training:
   dataset_dir: ${dataset.dataset_dir}
   dataset_file: "roboflow"
   output_dir: "experiments/${dataset.name}/${model.name}"
-  epochs: 30 # ~3,700 steps/epoch at effective batch 16; cosine decays over the whole run
-  batch_size: auto # RF-DETR picks a per-device batch that fits and accumulates to an effective batch of ~16
-  grad_accum_steps: 4 # overridden by "auto" batch sizing; kept for a fixed batch_size
+  epochs: 30 # ~4,400 steps/epoch at effective batch 16; cosine decays over the whole run
+  # Fixed (not "auto") -- empirically probed for rfdetr-nano @ resolution=576, see header.
+  batch_size: 8
+  grad_accum_steps: 2 # batch_size * grad_accum_steps = 16, RF-DETR's tuned effective batch
   learning_rate: 0.0001 # RF-DETR's fine-tuning default; unchanged at effective batch ~16
   learning_rate_encoder: 0.00015
   scheduler_type: "cosine" # "step" only drops the LR after lr_drop=100 epochs, which a 30-epoch run never reaches

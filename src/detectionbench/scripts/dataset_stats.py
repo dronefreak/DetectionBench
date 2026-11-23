@@ -22,10 +22,10 @@ dataset, pass ``--name`` plus any of ``--description``/``--citation``/
 to show are simply omitted).
 
 Usage:
-  python -m detectionbench.scripts.dataset_stats \\
-      --coco-dir /path/to/uavdt_coco \\
-      --dataset uavdt \\
-      --output-dir docs/datasets/uavdt \\
+  python -m detectionbench.scripts.dataset_stats \
+      --coco-dir /path/to/uavdt_coco \
+      --dataset uavdt \
+      --output-dir docs/datasets/uavdt \
       --group-label sequence
 """
 
@@ -282,6 +282,7 @@ def build_markdown(  # noqa: PLR0913
     group_label: str | None,
     group_chart_path: str | None,
     reproduce_cmd: str,
+    banner_path: str | None = None,
 ) -> str:
     """Assemble the markdown report body from computed split statistics."""
     total_images = sum(s.n_images for s in splits)
@@ -293,6 +294,7 @@ def build_markdown(  # noqa: PLR0913
     all_boxes_per_image = [n for s in splits for n in s.boxes_per_image]
 
     lines: list[str] = [f"# {meta.name}: Dataset Statistics", ""]
+    lines += [f"![{meta.name} sample images]({banner_path})", ""] if banner_path else []
     if meta.description:
         lines += ["## About", "", meta.description, ""]
     lines += [
@@ -440,6 +442,9 @@ def main() -> None:
         f"--output-dir {output_dir}"
         + (f" --group-label {args.group_label}" if args.group_label else "")
     )
+    # A ground-truth mosaic (detectionbench-dataset-banner) placed next to the
+    # report as <key>_banner.jpg is embedded under the title.
+    banner = output_dir / f"{meta.cli_key}_banner.jpg"
     markdown = build_markdown(
         meta=meta,
         splits=splits,
@@ -447,6 +452,7 @@ def main() -> None:
         group_label=args.group_label,
         group_chart_path=group_chart_path.name if group_chart_path else None,
         reproduce_cmd=reproduce_cmd,
+        banner_path=banner.name if banner.is_file() else None,
     )
     report_path = output_dir / "README.md"
     report_path.write_text(markdown)

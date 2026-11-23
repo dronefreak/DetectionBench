@@ -123,6 +123,10 @@ def load_detection_dataset(dataset_dir: Path, split: str) -> tuple[Any, dict[int
         ) from err
 
     split_dir = dataset_dir / split
+    # Dataset configs name splits the Ultralytics way (eval_split: val), but the
+    # canonical COCO layout calls that directory "valid".
+    if split == "val" and not split_dir.exists():
+        split_dir = dataset_dir / "valid"
     annotation_path = split_dir / COCO_ANNOTATION_FILE
     if not split_dir.exists():
         raise FileNotFoundError(f"Dataset split directory not found: {split_dir}")

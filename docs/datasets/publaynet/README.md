@@ -8,7 +8,7 @@ Computed from the canonical COCO layout produced by `detectionbench-prepare-coco
 
 ## Split Summary
 
-No local copy has been prepared yet -- the full release is 100GB+ (see `dataset_cards/publaynet/README.md` for third-party re-upload links), so this project has deliberately not downloaded/converted it. The published splits are:
+No local copy has been prepared yet -- the full release is 100GB+ (IBM's own hosting is deprecated; use a third-party Hugging Face/Kaggle re-upload), so this project has deliberately not downloaded/converted it. The published splits are:
 
 | Split | Images |
 | :--- | ---: |

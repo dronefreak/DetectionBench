@@ -1,0 +1,102 @@
+# bdd100k_yolo_medium.yaml (medium tier)
+# BDD100K-specific Hydra config for medium-tier YOLO models (Ultralytics). Siblings: bdd100k_yolo.yaml (nano
+# tier), bdd100k_yolo_small.yaml (same dataset/recipe, batch_size re-probed per tier -- nano/small/medium
+# have meaningfully different VRAM ceilings, see below). Use instead of config.yaml:
+#   detectionbench-train --config-name bdd100k_yolo_medium model.name=yolov10m
+#
+# Why BDD100K needs its own settings (from docs/datasets/bdd100k/README.md + the converted COCO annotations):
+#   * Big and uniform: 70,000 train / 10,000 valid / 20,000 test images (the official Berkeley split -- all
+#     three now carry real labels, see src/detectionbench/datasets/bdd100k.py), all 1280x720 dashcam frames,
+#     ~18 boxes per image (p99 47, max 91). An epoch is ~1,090 optimizer steps at nbs=64, so far fewer epochs
+#     are needed than on a small dataset, and validation (10k images) is large enough for mAP to be a stable
+#     signal.
+#   * Mixed object sizes: median box ~29 px on the native frame, but traffic lights are ~16 px and traffic signs ~21 px
+#     (75-88% of them are under 16 px at imgsz=640). Resolution matters mostly for those two classes (28% of boxes).
+#     Fraction of all boxes under 16 px: 55% at imgsz 640, 35% at 960, 21% at 1280.
+#   * Strong imbalance: car 55%, traffic sign 19%, traffic light 14%; `train` has only ~180 boxes in total across
+#     all 100,000 images, so its per-class AP will be near-noise no matter the recipe.
+#
+# Everything here is a reasoned starting point, not a tuned result.
+# Mirrored on Hugging Face as `dronefreak/BDD100K`, in its raw as-provided
+# format (see configs/dataset/bdd100k.yaml).
+#
+# Recommended starting points for a single consumer GPU (e.g. RTX 4070 Super, 12GB). Deferred until
+# nano/small results look promising and there's time to spend on it -- a medium-tier epoch costs noticeably
+# more than nano/small (bigger model, smaller safe batch -> more optimizer steps per epoch too).
+# batch_size is pinned to a measured value rather than AutoBatch ("-1"/"auto") so a long unattended home run
+# can't have AutoBatch misjudge headroom and OOM-crash partway through; nbs=64 gradient accumulation (below)
+# keeps the effective batch at 64 regardless, so learning_rate does not need to change with batch_size.
+#
+# Medium-tier batch size, confirmed per model family @ imgsz=960, AMP on (1-epoch real training runs against
+# this exact dataset/GPU, batch raised until CUDA OOM, with ~830-920MB already used by other processes):
+#     model       clean ceiling (peak reserved)     first OOM batch
+#     yolo11m     8 (~9.7 GB)                       10
+#     yolov8m     10+ (~8.9 GB, ceiling not found)   >10 (most VRAM-efficient of the four)
+#     yolov10m    8 (~9.9 GB)                        10
+#     yolo26m     8 (~10.9 GB, thin margin)          10
+#   Medium-tier models are ~6-10x nano's parameter count; the safe batch has dropped to single digits.
+#   batch_size below (6) is the family-wide safe floor -- two steps under the shared clean ceiling (8), with
+#   extra margin because yolo26m's clean run already sat close to the OOM boundary (~10.9 of ~11.2 GB) -- so
+#   swapping model.name to any medium-tier model keeps working without re-tuning batch_size. Pin a higher
+#   value (up to 8, or 10 for yolov8m) only if you've confirmed the model and that nothing else is using the
+#   GPU. (yolov9 has no medium-tier model in this project's zoo -- "t"/nano is its only trained size.)
+#   detectionbench-train --config-name bdd100k_yolo_medium model.name=yolo11m
+#     # Noticeably slower per epoch than nano/small: bigger model + smaller batch (more optimizer steps) +
+#     # grad accumulation to reach nbs=64. Not independently measured on the full dataset -- treat the
+#     # 50-epoch default as a multi-day run and consider training.epochs=20-30 for a first pass.
+
+defaults:
+  - dataset: bdd100k
+  - _self_
+
+model:
+  # Medium tier -- deferred until nano/small results look promising and more time is available (see header).
+  # Override per run, e.g. model.name=yolov8m, model.name=yolo26m.
+  name: "yolo11m"
+  pretrained: true
+  num_classes: ${dataset.num_classes}
+
+training:
+  dataset_yaml: ${dataset.dataset_yaml}
+  epochs: 50 # COCO-pretrained weights converge quickly on ~70k images; cosine decay over 50 epochs
+  # Fixed (not AutoBatch/"-1") -- family-wide safe floor across all 4 medium-tier models probed, see header.
+  # Raise per-model (up to 8, or 10 for yolov8m) only once you've confirmed which model.name you're running.
+  batch_size: 6
+  learning_rate: 0.01 # SGD lr0; only used because optimizer is explicit (with "auto" Ultralytics ignores lr0)
+  # Compromise: 640 loses most traffic lights/signs; 1280 (native width) costs ~1.8x more per epoch than 960.
+  imgsz: 960
+  # What Ultralytics' "auto" would pick here anyway (50 epochs x ~1,090 steps is far past its
+  # 10k-iteration threshold); pinned for reproducibility.
+  optimizer: "SGD"
+  use_scheduler: true
+  scheduler_type: "cosine" # cos_lr; decays to lr0 * lrf (0.01) by the last epoch
+  use_amp: true
+  patience: 10 # 10k validation images -> stable mAP, so a shorter patience than on small-val datasets is fine
+  output_dir: "experiments/${dataset.name}/${model.name}"
+  workers: 8
+  use_augmentation: true # Ultralytics default pipeline, adjusted by extra_args below
+  device: "cuda"
+  seed: 0 # Ultralytics train(seed=...); 0 is its default and what the published runs used
+  # Resume an interrupted run: true (or "last") continues from <output_dir>/<model>/weights/last.pt, or pass a
+  # checkpoint path. Epochs/optimizer/hyperparameters come from the checkpoint; finished runs are refused.
+  resume: null
+  # Extra Ultralytics train() arguments (forwarded as-is). Defaults shown in comments.
+  extra_args:
+    warmup_epochs: 1.0 # default 3.0; with ~1,090 steps per epoch, 1 epoch is already ~1,090 warmup steps
+    close_mosaic: 10 # default; last 10 epochs train without mosaic so the model sees natural dashcam scenes
+    mosaic: 1.0 # default
+
+evaluation:
+  # Ultralytics remembers the training imgsz in the checkpoint, so val runs at 960 too.
+  checkpoint: ${training.output_dir}/${model.name}/weights/best.pt
+  model: ${model.name}
+  num_classes: ${model.num_classes}
+  dataset_yaml: ${training.dataset_yaml}
+  split: ${dataset.eval_split}
+  device: ${training.device}
+  output_dir: ${training.output_dir}/${model.name}/evaluation
+  save_predictions: true
+
+hydra:
+  run:
+    dir: ${training.output_dir}/${model.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}

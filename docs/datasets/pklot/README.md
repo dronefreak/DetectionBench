@@ -1,5 +1,7 @@
 # PKLot: Dataset Statistics
 
+![PKLot sample images](pklot_banner.jpg)
+
 ## About
 
 PKLot is a parking-lot occupancy benchmark: 12,417 1280x720 frames from three fixed cameras (PUCPR, UFPR04, UFPR05) under sunny, cloudy and rainy conditions, with roughly 694k labelled parking spaces marked occupied or vacant. Its original task classifies each fixed space; here every space is a bounding box to detect and classify, so results are not comparable to free-form car detection.

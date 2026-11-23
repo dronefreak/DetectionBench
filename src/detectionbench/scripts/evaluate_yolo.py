@@ -10,10 +10,10 @@ which dispatches here or to `evaluate_rfdetr.py` based on `--model` (see
 Ultralytics-specific flags (`--batch-size`, `--iou-threshold`, ...) the
 unified dispatcher doesn't expose:
 
-  python -m detectionbench.scripts.evaluate_yolo \\
-      --checkpoint experiments/doclaynet/yolov8n/weights/best.pt \\
-      --model yolov8n \\
-      --dataset doclaynet \\
+  python -m detectionbench.scripts.evaluate_yolo \
+      --checkpoint experiments/doclaynet/yolov8n/yolov8n/weights/best.pt \
+      --model yolov8n \
+      --dataset doclaynet \
       --dataset-yaml /path/to/doclaynet_yolo/data.yaml
 """
 
@@ -45,6 +45,13 @@ class EvaluationOptions:
     output_dir: Path
     save_predictions: bool = False
     split: str = "test"
+    # Ultralytics val() knobs. None keeps Ultralytics' own default (conf=0.001,
+    # iou=0.7, batch=32 or the checkpoint's), which is what every published
+    # number was produced with -- raising conf above ~0.001 lowers mAP.
+    score_threshold: float | None = None
+    iou_threshold: float | None = None
+    batch_size: int | None = None
+    num_workers: int | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -80,15 +87,32 @@ def parse_args() -> argparse.Namespace:
         help="Dataset split to evaluate (some datasets, e.g. seadronessee, "
         "have no public test-set labels -- use 'val' for those)",
     )
-    parser.add_argument("--batch-size", type=int, default=4, help="Batch size")
-    parser.add_argument("--num-workers", type=int, default=4, help="DataLoader workers")
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Batch size (default: Ultralytics default)",
+    )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=None,
+        help="DataLoader workers (default: Ultralytics default)",
+    )
 
     # Evaluation options
     parser.add_argument(
-        "--score-threshold", type=float, default=0.05, help="Score threshold"
+        "--score-threshold",
+        type=float,
+        default=None,
+        help="Confidence threshold (default: Ultralytics' 0.001; higher values "
+        "lower mAP and are not comparable to the leaderboards)",
     )
     parser.add_argument(
-        "--iou-threshold", type=float, default=0.5, help="IoU threshold"
+        "--iou-threshold",
+        type=float,
+        default=None,
+        help="NMS IoU threshold (default: Ultralytics' 0.7)",
     )
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
@@ -126,6 +150,12 @@ def evaluate_yolo(options: EvaluationOptions) -> dict[str, Any]:
 
     names = options.class_names[: min(options.num_classes, len(options.class_names))]
 
+    optional_kwargs = {
+        "conf": options.score_threshold,
+        "iou": options.iou_threshold,
+        "batch": options.batch_size,
+        "workers": options.num_workers,
+    }
     model = UltralyticsYOLO(str(options.checkpoint_path))
     results = model.val(
         data=str(options.dataset_yaml),
@@ -135,6 +165,7 @@ def evaluate_yolo(options: EvaluationOptions) -> dict[str, Any]:
         project=str(options.output_dir.resolve()),
         name="yolo_eval",
         exist_ok=True,
+        **{key: value for key, value in optional_kwargs.items() if value is not None},
     )
 
     # Extract metrics from Ultralytics results
@@ -294,6 +325,10 @@ def main() -> None:
             output_dir=output_dir,
             save_predictions=args.save_predictions,
             split=args.split,
+            score_threshold=args.score_threshold,
+            iou_threshold=args.iou_threshold,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
         )
     )
 

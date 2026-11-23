@@ -236,7 +236,11 @@ experiments/
 /model_cards/
 
 # Banners
-banners/
+/banners/
+
+# Local run logs and model-card staging (machine-local, never committed)
+/logs/
+/temp/
 
 # MD files
 prompts.md
@@ -254,7 +258,7 @@ inference_outputs/
 posts.md
 reddit-post.md
 run_trainings.sh
-scripts/
+/scripts/
 split_test_test.ipynb
 src/detectionbench/scripts/generate_model_cards.py
 src/detectionbench/scripts/generate_readme_leaderboard.py
